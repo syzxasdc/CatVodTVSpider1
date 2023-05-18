@@ -12,7 +12,7 @@
     {"key":"低端影视","name":"低端影视","type":3,"api":"csp_Ddrk","searchable":1},
     {"key":"Anime1","name":"动漫","type":3,"api":"csp_Anime1","searchable":1},
     {"key":"Bilituys","name":"哔哩兔影视","type":3,"api":"csp_Bilituys","searchable":1},
-    {"key":"Voflix","name":"Voflix","type":3,"api":"csp_Voflix","searchable":1},
+    {"key":"Voflix","name":"Voflix","type":3,"api":"csp_Voflix","searchable":1, "ext": "https://www.voflix.me/"},
     {"key":"push_agent","name":"推送(播放页链接或磁力)","type":3,"api":"csp_PushAgent","searchable":0}
   ],
 
