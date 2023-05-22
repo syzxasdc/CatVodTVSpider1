@@ -1,8 +1,9 @@
 {
-  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;7a1fb26d04c5de6b0ef58228029cb2b0",
+  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;ed9aca393cf2454805cc059fb6eda80a",
 
   "sites":[
     {"key":"Live","name":"电视直播","type":3,"api":"csp_Live","searchable":1,"ext":"南风$https://agit.ai/Yoursmile7/TVBox/raw/branch/master/live.txt#饭太硬$https://agit.ai/fantaiying/fty/raw/branch/master/live.txt#影视范$https://agit.ai/fantaiying/fmm/raw/branch/main/tv/m3u/global.m3u"},
+    {"key":"360","name":"360","type":3,"api":"csp_SP360","searchable":1},
     {"key":"MGTV","name":"MGTV","type":3,"api":"csp_MGTV","searchable":1},
     {"key":"IQIYI","name":"IQIYI","type":3,"api":"csp_IQIYI","searchable":1},
     {"key":"NongMing","name":"农民影视","type":3,"api":"csp_NongMing","searchable":1},
