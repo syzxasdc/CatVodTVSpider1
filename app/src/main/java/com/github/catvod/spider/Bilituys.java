@@ -30,6 +30,7 @@ public class Bilituys extends Spider {
     /**
      * 首页内容
      */
+    @Override
     public String homeContent(boolean filter) {
         JSONObject movieType = new JSONObject()
                 .put("type_id", "1")
@@ -70,6 +71,7 @@ public class Bilituys extends Spider {
      * @param extend 筛选
      * @return 返回 json 字符串
      */
+    @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
             HashMap<String, String> ext = new HashMap<>();
@@ -136,6 +138,7 @@ public class Bilituys extends Spider {
     /**
      * 详情页
      */
+    @Override
     public String detailContent(List<String> ids) {
         try {
             String detailUrl = ids.get(0);
@@ -231,6 +234,7 @@ public class Bilituys extends Spider {
      *
      * @param key 关键字/词
      */
+    @Override
     public String searchContent(String key, boolean quick) {
         try {
             String searchUrl = siteUrl + "/bilisch/wd/" + URLEncoder.encode(key) + ".html";
@@ -261,14 +265,20 @@ public class Bilituys extends Spider {
         return "";
     }
 
+    @Override
     public String playerContent(String flag, String id, List<String> vipFlags) {
-        HashMap<String, String> header = new HashMap<>();
-        header.put("user-agent", userAgent);
-        JSONObject result = new JSONObject()
-                .put("parse", 1)
-                .put("header", header)
-                .put("playUrl", "")
-                .put("url", id);
-        return result.toString();
+        try {
+            HashMap<String, String> header = new HashMap<>();
+            header.put("user-agent", userAgent);
+            JSONObject result = new JSONObject()
+                    .put("parse", 1)
+                    .put("header", header)
+                    .put("playUrl", "")
+                    .put("url", id);
+            return result.toString();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "";
     }
 }
