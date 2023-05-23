@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -106,18 +107,17 @@ public class SP360 extends Spider {
                 cateUrl = "https://api.web.360kan.com/v1/filter/list?catid=" + tid + "&" + sb + "&size=35&pageno=" + pg + "&callback=";
                 referer = "https://www.360kan.com/" + categoryClassId + "/list?" + sb + "&pageno=" + pg;
             }
-            String content = getContent(cateUrl, referer);
+            String content = getWebContent(cateUrl, referer);
             JSONArray videos = new JSONArray();
-            JSONArray items = new JSONObject(content).getJSONObject("data").getJSONArray("movies");
+            JSONArray items = new JSONObject(content).optJSONObject("data").optJSONArray("movies");
             for (int i = 0; i < items.length(); i++) {
-                JSONObject item = items.getJSONObject(i);
+                JSONObject item = items.optJSONObject(i);
                 String id = item.optString("id");
                 String vid = "https://api.web.360kan.com/v1/detail?cat=" + tid + "&id=" + id + "&callback=";
                 String detailReferer = "https://www.360kan.com/" + detailClassId + "/" + id + ".html";
                 JSONObject detailObj = new JSONObject().put("detailUrl", vid).put("detailReferer", detailReferer);
                 String name = item.optString("title");
                 String pic = "http:" + item.optString("cdncover");
-                // String pic = "http:" + item.optString("cover");
                 String remark = item.optString("pubdate");
 
                 JSONObject vod = new JSONObject()
@@ -128,7 +128,7 @@ public class SP360 extends Spider {
                 videos.put(vod);
             }
 
-            int total = new JSONObject(content).getJSONObject("data").optInt("total");
+            int total = new JSONObject(content).optJSONObject("data").optInt("total");
             int count = total % 35 == 0 ? (total / 35) : (total / 35 + 1);
 
             JSONObject result = new JSONObject()
@@ -144,7 +144,7 @@ public class SP360 extends Spider {
         return "";
     }
 
-    private String getContent(String targetUrl, String referer) throws IOException {
+    private String getWebContent(String targetUrl, String referer) throws IOException {
         Request request = new Request.Builder()
                 .url(targetUrl)
                 .get()
@@ -156,6 +156,7 @@ public class SP360 extends Spider {
                 .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
                 .build();
         Response response = okHttpClient.newCall(request).execute();
+        if (response.body() == null) return "";
         String content = response.body().string();
         response.close();
         return content;
@@ -167,17 +168,21 @@ public class SP360 extends Spider {
             JSONObject detailObj = new JSONObject(ids.get(0));
             String detailUrl = detailObj.optString("detailUrl");
             String detailReferer = detailObj.optString("detailReferer");
-            String detailResult = getContent(detailUrl, detailReferer);
-            JSONObject data = new JSONObject(detailResult).getJSONObject("data");
+            String detailResult = getWebContent(detailUrl, detailReferer);
+            JSONObject data = new JSONObject(detailResult).optJSONObject("data");
 
             StringBuilder vodPlayUrl = new StringBuilder(); // 线路/播放源 里面的各集的播放页面链接
             StringBuilder vodPlayFrom = new StringBuilder();  // 线路 / 播放源标题
             // 影片标题
             String name = data.optString("title");
 
+            boolean isTV = data.has("allepidetail"); // 电视或者动漫的标志
+            boolean isVarietyShow = data.has("defaultepisode"); // 综艺类型标志
+
             JSONObject playLinksDetail = data.optJSONObject("playlinksdetail");
             JSONArray playLinkSites = data.optJSONArray("playlink_sites");
-            if (data.has("allepidetail")) {
+            if (isTV) {
+                // 进入这里说明是电视剧或者动漫
                 // 有很多集
                 // 需要针对一些还没有查询出来的数据做查询，获取其他站源的数据
                 JSONObject allEpisodeDetail = data.optJSONObject("allepidetail");
@@ -192,17 +197,54 @@ public class SP360 extends Spider {
                     int endIndex = detailUrl.indexOf("&callback=");
                     String substring = detailUrl.substring(0, endIndex);
                     String detailURL2 = substring + "&site=" + site + "&callback=";
-                    String detailResult2 = getContent(detailURL2, detailReferer);
-                    JSONObject data2 = new JSONObject(detailResult2).getJSONObject("data");
-                    JSONObject allEpisodeDetail2 = data2.optJSONObject("allepidetail");
+                    String detailResult2 = getWebContent(detailURL2, detailReferer);
+                    JSONObject allEpisodeDetail2 = new JSONObject(detailResult2)
+                            .optJSONObject("data")
+                            .optJSONObject("allepidetail");
                     setEpisodes(vodPlayUrl, vodPlayFrom, allEpisodeDetail2, site);
+                }
+            } else if (isVarietyShow) {
+                // 进入这里说明是综艺类型
+                // 遍历 playLinkSites 发起请求获取
+                for (int i = 0; i < playLinkSites.length(); i++) {
+                    String site = playLinkSites.get(i) + "";
+                    vodPlayFrom.append(site).append("$$$");
+                    boolean flag = false; // 当前网站的剧集已经存到 vodPlayUrl 的标记，默认没有存
+                    if (data.has("tag")) {
+                        // 有 tags 标签 ，说明有按年份区分该综艺节目
+                        Iterator<String> keys = data.optJSONObject("tag").keys();
+                        while (keys.hasNext()) {
+                            String year = keys.next();
+                            int endIndex = detailUrl.indexOf("&callback=");
+                            String substring = detailUrl.substring(0, endIndex);
+                            String detailURL2 = substring + "&site=" + site + "&year=" + year + "&callback=";
+                            String detailResult2 = getWebContent(detailURL2, detailReferer);
+                            JSONArray episodes = new JSONObject(detailResult2)
+                                    .optJSONObject("data")
+                                    .optJSONArray("defaultepisode");
+                            for (int j = 0; j < episodes.length(); j++) {
+                                JSONObject item = episodes.optJSONObject(j);
+                                String episodeName = item.optString("period") + " " + item.optString("name");
+                                String episodeURL = item.optString("url");
+                                vodPlayUrl.append(episodeName).append("$").append(episodeURL).append("#");
+                            }
+                            if (episodes.length() > 0) {
+                                flag = true;
+                            }
+                        }
+                    }
+                    if (flag) {
+                        // 先去掉最后一个 # 号，再拼接 $$$
+                        vodPlayUrl.deleteCharAt(vodPlayUrl.length() - 1);
+                        vodPlayUrl.append("$$$");
+                    }
                 }
             } else {
                 // 电影的默认处理
                 for (int i = 0; i < playLinkSites.length(); i++) {
                     String site = playLinkSites.get(i) + "";
                     vodPlayFrom.append(site).append("$$$");
-                    JSONObject item = playLinksDetail.getJSONObject(site);
+                    JSONObject item = playLinksDetail.optJSONObject(site);
                     String defaultUrl = item.optString("default_url");
                     vodPlayUrl.append(name).append("$").append(defaultUrl).append("$$$");
                 }
@@ -248,7 +290,7 @@ public class SP360 extends Spider {
         JSONArray episodes = allEpisodeDetail.optJSONArray(site);
         for (int i = 0; i < episodes.length(); i++) {
             JSONObject item = episodes.optJSONObject(i);
-            String episodeName = item.optString("playlink_num");
+            String episodeName = "第 " + item.optString("playlink_num") + " 集";
             String episodeURL = item.optString("url");
             vodPlayUrl.append(episodeName).append("$").append(episodeURL);
             boolean notLastEpisode = i < episodes.length() - 1;
@@ -262,14 +304,14 @@ public class SP360 extends Spider {
             String keyword = URLEncoder.encode(key);
             String searchURL = "https://api.so.360kan.com/index?force_v=1&kw=" + keyword + "&from=&pageno=1&v_ap=1&tab=all";
             String referer = "https://so.360kan.com/?kw=" + keyword;
-            String searchResult = getContent(searchURL, referer);
+            String searchResult = getWebContent(searchURL, referer);
             JSONArray videos = new JSONArray();
             JSONArray rows = new JSONObject(searchResult)
                     .optJSONObject("data")
                     .optJSONObject("longData")
                     .optJSONArray("rows");
             for (int i = 0; i < rows.length(); i++) {
-                JSONObject item = rows.getJSONObject(i);
+                JSONObject item = rows.optJSONObject(i);
                 String id = item.optString("en_id");
                 String tid = item.optString("cat_id");
                 String vid = "https://api.web.360kan.com/v1/detail?cat=" + tid + "&id=" + id + "&callback=";
