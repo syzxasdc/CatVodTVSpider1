@@ -104,7 +104,7 @@ public class SP360 extends Spider {
             if (!pg.equals("1")) {
                 // 第二页开始
                 cateUrl = "https://api.web.360kan.com/v1/filter/list?catid=" + tid + "&" + sb + "&size=35&pageno=" + pg + "&callback=";
-                referer = "https://www.360kan.com/dianying/list?" + sb + "&pageno=2";
+                referer = "https://www.360kan.com/" + categoryClassId + "/list?" + sb + "&pageno=2";
             }
             String content = getContent(cateUrl, referer);
             JSONArray videos = new JSONArray();
