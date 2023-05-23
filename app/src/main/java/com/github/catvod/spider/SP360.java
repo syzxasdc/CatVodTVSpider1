@@ -116,8 +116,8 @@ public class SP360 extends Spider {
                 String detailReferer = "https://www.360kan.com/" + detailClassId + "/" + id + ".html";
                 JSONObject detailObj = new JSONObject().put("detailUrl", vid).put("detailReferer", detailReferer);
                 String name = item.optString("title");
-                // String pic = "http:" + item.optString("cdncover");
-                String pic = "http:" + item.optString("cover");
+                String pic = "http:" + item.optString("cdncover");
+                // String pic = "http:" + item.optString("cover");
                 String remark = item.optString("pubdate");
 
                 JSONObject vod = new JSONObject()
