@@ -135,6 +135,7 @@ public class Bilituys extends Spider {
                 .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
                 .build();
         Response response = okHttpClient.newCall(request).execute();
+        if (response.body() == null) return "";
         String content = response.body().string();
         response.close();
         return content;
