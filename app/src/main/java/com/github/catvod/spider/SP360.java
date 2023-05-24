@@ -211,7 +211,7 @@ public class SP360 extends Spider {
                     vodPlayFrom.append(site).append("$$$");
                     boolean flag = false; // 当前网站的剧集已经存到 vodPlayUrl 的标记，默认没有存
                     if (data.has("tag")) {
-                        // 有 tags 标签 ，说明有按年份区分该综艺节目
+                        // 有 tag 标签 ，说明有按年份区分该综艺节目
                         Iterator<String> keys = data.optJSONObject("tag").keys();
                         while (keys.hasNext()) {
                             String year = keys.next();
@@ -222,6 +222,7 @@ public class SP360 extends Spider {
                             JSONArray episodes = new JSONObject(detailResult2)
                                     .optJSONObject("data")
                                     .optJSONArray("defaultepisode");
+                            if (episodes == null) continue;
                             for (int j = 0; j < episodes.length(); j++) {
                                 JSONObject item = episodes.optJSONObject(j);
                                 String episodeName = item.optString("period") + " " + item.optString("name");
@@ -288,6 +289,7 @@ public class SP360 extends Spider {
     private static void setEpisodes(StringBuilder vodPlayUrl, StringBuilder vodPlayFrom, JSONObject allEpisodeDetail, String site) {
         vodPlayFrom.append(site).append("$$$");
         JSONArray episodes = allEpisodeDetail.optJSONArray(site);
+        if (episodes == null) return;
         for (int i = 0; i < episodes.length(); i++) {
             JSONObject item = episodes.optJSONObject(i);
             String episodeName = "第 " + item.optString("playlink_num") + " 集";
