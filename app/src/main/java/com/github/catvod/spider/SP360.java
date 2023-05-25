@@ -253,11 +253,11 @@ public class SP360 extends Spider {
 
             // 图片
             String pic = data.optString("cdncover");
-            String typeName = data.optJSONArray("moviecategory").toString();
+            String typeName = getCorrectString(data.optJSONArray("moviecategory"));
             String year = data.optString("pubdate");
-            String area = data.optJSONArray("area").toString();
-            String actor = data.optJSONArray("actor").toString();
-            String director = data.optJSONArray("director").toString();
+            String area = getCorrectString(data.optJSONArray("area"));
+            String actor = getCorrectString(data.optJSONArray("actor"));
+            String director = getCorrectString(data.optJSONArray("director"));
             String description = data.optString("description");
 
 
@@ -282,6 +282,16 @@ public class SP360 extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return "";
+    }
+
+    private static String getCorrectString(JSONArray jsonArray) {
+        if (jsonArray != null){
+            return jsonArray.toString()
+                    .replace("\"", "")
+                    .replace("[", "")
+                    .replace("]", "");
         }
         return "";
     }
