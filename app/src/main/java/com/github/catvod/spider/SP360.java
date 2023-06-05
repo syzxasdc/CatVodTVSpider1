@@ -256,7 +256,7 @@ public class SP360 extends Spider {
                 // 电影的默认处理
                 for (int i = 0; i < playLinkSites.length(); i++) {
                     String site = String.valueOf(playLinkSites.get(i));
-                    if (site.contains("douyin") || site.contains("xigua")) continue;
+                    // if (site.contains("douyin") || site.contains("xigua")) continue;
                     String defaultUrl = playLinksDetail.optJSONObject(site).optString("default_url");
                     List<String> vodItems = new ArrayList<>();
                     vodItems.add(name + "$" + defaultUrl);
