@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class NongMing extends Spider {
 
-    private final String siteUrl = "https://v.xiangdao.me";
+    private final String siteUrl = "https://www.nmddd.com";
     private final String userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1";
 
     @Override
