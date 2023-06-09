@@ -18,12 +18,20 @@
 
 
 4.配置接口
-> 配置地址：https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/tvbox_config.json
-> 
-> 
-> 加速地址: https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/tvbox_config.json
+> FongMi的影视 配置加速地址1: https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/json/FongMi_TV_config.json
 >
 >
-> 加速地址2: https://cdn.jsdelivr.net/gh/zhixc/CatVodTVSpider@main/tvbox_config.json
+> FongMi的影视 配置加速地址2: https://ghproxy.com/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/json/FongMi_TV_config.json
+> 
+> 
+> TVBox配置加速地址1: https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/tvbox_config.json
+>
+>
+> TVBox配置加速地址2: https://cdn.jsdelivr.net/gh/zhixc/CatVodTVSpider@main/tvbox_config.json
 
 使用不了配置地址的话，可以试试加速地址。
+
+5.推荐的软件
+
+强烈推荐使用 FongMi 的影视，支持自动换源，非常强大，作者持续更新维护。其仓库地址：https://github.com/FongMi/TV
+
