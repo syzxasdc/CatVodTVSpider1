@@ -27,7 +27,7 @@
 > TVBox配置加速地址1: https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/tvbox_config.json
 >
 >
-> TVBox配置加速地址2: https://cdn.jsdelivr.net/gh/zhixc/CatVodTVSpider@main/tvbox_config.json
+> TVBox配置加速地址2: https://ghproxy.com/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/tvbox_config.json
 
 
 
