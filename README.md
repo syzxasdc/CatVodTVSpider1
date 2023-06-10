@@ -29,7 +29,7 @@
 >
 > TVBox配置加速地址2: https://cdn.jsdelivr.net/gh/zhixc/CatVodTVSpider@main/tvbox_config.json
 
-使用不了配置地址的话，可以试试加速地址。
+
 
 5.推荐的软件
 
