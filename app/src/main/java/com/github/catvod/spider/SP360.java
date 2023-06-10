@@ -220,7 +220,7 @@ public class SP360 extends Spider {
                     }
                     if (vodItems.size() > 0) {
                         playFrom.add(site);
-                        playUrl.add(String.join("#", vodItems));
+                        playUrl.add(TextUtils.join("#", vodItems));
                     }
                 }
             } else if (isVarietyShow) {
@@ -248,7 +248,7 @@ public class SP360 extends Spider {
                         }
                         if (vodItems.size() > 0) {
                             playFrom.add(site);
-                            playUrl.add(String.join("#", vodItems));
+                            playUrl.add(TextUtils.join("#", vodItems));
                         }
                     }
                 }
@@ -256,12 +256,12 @@ public class SP360 extends Spider {
                 // 电影的默认处理
                 for (int i = 0; i < playLinkSites.length(); i++) {
                     String site = String.valueOf(playLinkSites.get(i));
-                    // if (site.contains("douyin") || site.contains("xigua")) continue;
+                    if (site.contains("douyin") || site.contains("xigua")) continue;
                     String defaultUrl = playLinksDetail.optJSONObject(site).optString("default_url");
                     List<String> vodItems = new ArrayList<>();
                     vodItems.add(name + "$" + defaultUrl);
                     playFrom.add(site);
-                    playUrl.add(String.join("#", vodItems));
+                    playUrl.add(TextUtils.join("#", vodItems));
                 }
             }
 
@@ -286,8 +286,8 @@ public class SP360 extends Spider {
                     .put("vod_actor", actor) // 主演 选填
                     .put("vod_director", director) // 导演 选填
                     .put("vod_content", description) // 简介 选填
-                    .put("vod_play_from", String.join("$$$", playFrom))
-                    .put("vod_play_url", String.join("$$$", playUrl));
+                    .put("vod_play_from", TextUtils.join("$$$", playFrom))
+                    .put("vod_play_url", TextUtils.join("$$$", playUrl));
 
             JSONArray listInfo = new JSONArray()
                     .put(info);
@@ -296,8 +296,8 @@ public class SP360 extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
+            return "";
         }
-        return "";
     }
 
     private String getCorrectString(JSONArray jsonArray) {
