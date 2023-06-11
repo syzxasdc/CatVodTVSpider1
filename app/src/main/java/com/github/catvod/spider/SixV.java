@@ -80,6 +80,11 @@ public class SixV extends Spider {
             String classType = ext.get("class") == null ? "" : ext.get("class");
             // 筛选处理 end
 
+            if (tid.equals("my_tid_tv") && classType.equals("")) {
+                // 电视剧没有筛选时默认给个值
+                classType = "dianshiju";
+            }
+
             String cateUrl = siteUrl + "/" + classType;
             if (!pg.equals("1")) {
                 cateUrl += "/index_" + pg + ".html";
@@ -168,7 +173,7 @@ public class SixV extends Spider {
                     .replaceAll("&nbsp;", "")
                     .replaceAll("&amp;", "")
                     .replaceAll("middot;", ".");
-            if (actor.equals("")){
+            if (actor.equals("")) {
                 actor = getStrByRegex(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML)
                         .replaceAll("<br>", "")
                         .replaceAll("&nbsp;", "")
