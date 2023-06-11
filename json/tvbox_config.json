@@ -13,7 +13,7 @@
     {"key":"IQIYI","name":"IQIYI","type":3,"api":"csp_IQIYI","searchable":1},
     {"key":"MGTV","name":"MGTV","type":3,"api":"csp_MGTV","searchable":1},
     {"key":"PiaoHua","name":"新飘花电影网(磁力)","type":3,"api":"csp_BTPiaoHua","searchable":1},
-    {"key":"SixV","name":"6V电影网(磁力)","type":3,"api":"csp_SixV","searchable":1},
+    {"key":"SixV","name":"6V电影网(磁力)","type":3,"api":"csp_SixV","searchable":1, "ext": "https://www.66s.cc/"},
     {"key":"厂长","name":"厂长","type":3,"api":"csp_Czsapp","searchable":1},
     {"key":"低端影视","name":"低端影视","type":3,"api":"csp_Ddrk","searchable":1},
     {"key":"Anime1","name":"动漫","type":3,"api":"csp_Anime1","searchable":1},
