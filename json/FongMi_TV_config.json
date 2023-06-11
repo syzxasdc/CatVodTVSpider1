@@ -1,5 +1,5 @@
 {
-  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;5fa422e90b53a3b3523e52c1530e2122",
+  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;640dac06e3ca70947ff58b3e24739f1c",
 
   "sites":[
     {"key":"Live2Vod","name":"电视直播","type":3,"api":"csp_Live2Vod","searchable":1,"ext":"南风$https://agit.ai/Yoursmile7/TVBox/raw/branch/master/live.txt#饭太硬$https://agit.ai/fantaiying/fty/raw/branch/master/live.txt#影视范$https://agit.ai/fantaiying/fmm/raw/branch/main/tv/m3u/global.m3u"},
@@ -13,15 +13,17 @@
     {"key":"怡萱动漫","name":"怡萱动漫","type":3,"api":"https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js","searchable":1, "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/怡萱动漫.js"},
     {"key":"我的哔哩","name":"我的哔哩","type":3,"api":"https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js","searchable":1, "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/我的哔哩.js"},
     {"key":"子子影视","name":"子子影视","type":3,"api":"https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js","searchable":1, "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/子子影视.js"},
-    {"key":"如意[V2]","name":"如意[V2]","type":3,"api":"https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js","searchable":1, "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/如意[V2].js"},
-    {"key":"多米[V2]","name":"多米[V2]","type":3,"api":"https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js","searchable":1, "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/多米[V2].js"},
+    {"key":"如意[V2]","name":"如意[V2]","type":3,"api":"csp_AppYsV2","searchable":1, "ext": "http://cms.maoyingshi.cc/api.php/app/"},
+    {"key":"多米[V2]","name":"多米[V2]","type":3,"api":"csp_AppYsV2","searchable":1, "ext": "http://v.dmdh.top/api.php/app/"},
     {"key":"IQIYI","name":"IQIYI","type":3,"api":"csp_IQIYI","searchable":1},
     {"key":"NongMing","name":"农民影视","type":3,"api":"csp_NongMing","searchable":1},
-       {"key":"厂长","name":"厂长","type":3,"api":"csp_Czsapp","searchable":1},
+    {"key":"厂长","name":"厂长","type":3,"api":"csp_Czsapp","searchable":1},
     {"key":"低端影视","name":"低端影视","type":3,"api":"csp_Ddrk","searchable":1},
     {"key":"Anime1","name":"动漫","type":3,"api":"csp_Anime1","searchable":1},
     {"key":"Bilituys","name":"哔哩兔影视","type":3,"api":"csp_Bilituys","searchable":1},
     {"key":"Voflix","name":"Voflix","type":3,"api":"csp_Voflix","searchable":1, "ext": "https://www.voflix.me/"},
+    {"key":"LiteApple","name":"小苹果","type":3,"api":"csp_LiteApple","searchable":1},
+    {"key":"Yj1211","name":"直播综合","type":3,"api":"csp_Yj1211","searchable":1},
     {"key":"push_agent","name":"推送(播放页链接或磁力)","type":3,"api":"csp_PushAgent","searchable":0}
   ],
 
