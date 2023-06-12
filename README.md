@@ -37,6 +37,7 @@
 > 强烈推荐使用 FongMi 的影视，支持自动换源，非常强大，作者持续更新维护。其仓库地址：https://github.com/FongMi/TV
 
 ### 6.关于直播(爬虫版)使用说明
+
 - 第一种写法，这种是早期写的，比较难阅读和编写
 ```text
 {"key":"Live2Vod","name":"电视直播","type":3,"api":"csp_Live2Vod","searchable":1,"ext":"南风$https://agit.ai/Yoursmile7/TVBox/raw/branch/master/live.txt#饭太硬$https://agit.ai/fantaiying/fty/raw/branch/master/live.txt#影视范$https://agit.ai/fantaiying/fmm/raw/branch/main/tv/m3u/global.m3u"},
@@ -67,4 +68,5 @@
 ]
 ```
 - m3u 格式的文件，里面一般带有图片，如果在json配置文件里面写了图片链接，那么就以json配置文件的为主。
+- 一些直播源来自：<span style="color:blue">youshandefeiyang</span> 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、<span style="color:blue">Ftindy</span> 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、<span style="color:blue">范明明</span>的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 <span style="color:blue">youshandefeiyang</span>、、<span style="color:blue">Ftindy</span>、<span style="color:blue">范明明</span>的分享。
 
