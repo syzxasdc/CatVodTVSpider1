@@ -68,5 +68,5 @@
 ]
 ```
 - m3u 格式的文件，里面一般带有图片，如果在json配置文件里面写了图片链接，那么就以json配置文件的为主。
-- 一些直播源来自：<span style="color:blue">youshandefeiyang</span> 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、<span style="color:blue">Ftindy</span> 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、<span style="color:blue">范明明</span>的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 <span style="color:blue">youshandefeiyang</span>、、<span style="color:blue">Ftindy</span>、<span style="color:blue">范明明</span>的分享。
+- 一些直播源来自：<font style="color:blue">youshandefeiyang</font> 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、<font style="color:blue">Ftindy</font> 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、<font style="color:blue">范明明</font>的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 <font style="color:blue">youshandefeiyang</font>、<font style="color:blue">Ftindy</font>、<font style="color:blue">范明明</font>的分享。
 
