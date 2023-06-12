@@ -14,5 +14,17 @@
   {
     "name": "听迪爱尚",
     "url": "https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/aishang.m3u"
+  },
+  {
+    "name": "虎牙一起看",
+    "url": "https://live.d1.mk/huyayqk.m3u"
+  },
+  {
+    "name": "斗鱼一起看",
+    "url": "https://live.d1.mk/douyuyqk.m3u"
+  },
+  {
+    "name": "YY轮播",
+    "url": "https://live.d1.mk/yylunbo.m3u"
   }
 ]
