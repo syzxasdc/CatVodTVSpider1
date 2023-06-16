@@ -241,16 +241,24 @@ public class Live2Vod extends Spider {
             String vod_play_url = s.replace(",", "$");
             String vod_play_from = "选台";  // 线路 / 播放源标题
 
+            String description = "";
             String[] split = vod_play_url.split("\\$");
             String name = "电视直播";
             if (split.length == 2) {
                 name = split[0];
+                description = "播放地址：" + vod_play_url;
             }
             JSONObject info = new JSONObject()
                     .put("vod_id", ids.get(0))
-                    .put("vod_name", name)
-                    .put("vod_pic", pic)
-                    .put("type_name", "电视直播")
+                    .put("vod_name", name) // 影片名称
+                    .put("vod_pic", pic) // 图片/影片封面
+                    .put("type_name", "电视直播")// 年份
+                    .put("vod_year", "") // 年份
+                    .put("vod_area", "") // 地区
+                    .put("vod_remarks", "") // 备注
+                    .put("vod_actor", "") // 主演
+                    .put("vod_director", "") // 导演
+                    .put("vod_content", description) // 简介
                     .put("vod_play_from", vod_play_from)
                     .put("vod_play_url", vod_play_url);
 
