@@ -29,11 +29,7 @@ public class Live2Vod extends Spider {
     @Override
     public void init(Context context, String extend) {
         super.init(context, extend);
-        try {
-            myExtend = extend;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        myExtend = extend;
     }
 
     @Override
@@ -73,8 +69,8 @@ public class Live2Vod extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
     private String getWebContent(String targetUrl) throws IOException {
@@ -127,8 +123,8 @@ public class Live2Vod extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
     // ######## 处理 m3u 格式的直播
@@ -265,8 +261,8 @@ public class Live2Vod extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
     @Override
@@ -282,7 +278,7 @@ public class Live2Vod extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 }

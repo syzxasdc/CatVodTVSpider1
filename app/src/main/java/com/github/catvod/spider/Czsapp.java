@@ -72,8 +72,8 @@ public class Czsapp extends Spider {
             return sb.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
     public static Object[] loadsub(String sub) {
@@ -128,9 +128,8 @@ public class Czsapp extends Spider {
             return new Object[]{200, "application/octet-stream", new ByteArrayInputStream(join.getBytes())};
         } catch (Exception e) {
             e.printStackTrace();
-            SpiderDebug.log(e);
-            return null;
         }
+        return null;
     }
 
     public String categoryContent(String str, String str2, boolean z, HashMap<String, String> hashMap) {
@@ -168,8 +167,8 @@ public class Czsapp extends Spider {
             return jSONObject.toString();
         } catch (Exception e) {
             SpiderDebug.log(e);
-            return "";
         }
+        return "";
     }
 
     public String detailContent(List<String> list) {
@@ -279,8 +278,8 @@ public class Czsapp extends Spider {
             return jSONObject.toString();
         } catch (Exception e) {
             SpiderDebug.log(e);
-            return "";
         }
+        return "";
     }
 
     protected static HashMap<String, String> Headers() {
@@ -393,9 +392,8 @@ public class Czsapp extends Spider {
             return jSONObject.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            SpiderDebug.log(e);
-            return "";
         }
+        return "";
     }
 
     public String searchContent(String str, boolean z) {
@@ -431,7 +429,7 @@ public class Czsapp extends Spider {
             return jSONObject.toString();
         } catch (Exception e) {
             SpiderDebug.log(e);
-            return "";
         }
+        return "";
     }
 }

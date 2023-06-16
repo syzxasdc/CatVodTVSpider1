@@ -475,8 +475,8 @@ public class Ddrk extends Spider {
         } catch (Exception e) {
             e.printStackTrace();
             SpiderDebug.log(e);
-            return null;
         }
+        return null;
     }
 
 

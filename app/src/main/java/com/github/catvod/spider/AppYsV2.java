@@ -138,8 +138,8 @@ public class AppYsV2 extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
 
@@ -162,8 +162,8 @@ public class AppYsV2 extends Spider {
             return content;
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
+        return "";
     }
 
 
