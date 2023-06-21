@@ -1,6 +1,7 @@
 package com.github.catvod.spider;
 
 import android.content.Context;
+import android.text.TextUtils;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.SSLSocketFactoryCompat;
 import okhttp3.OkHttpClient;
@@ -15,8 +16,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author zhixc
@@ -24,24 +26,35 @@ import java.util.List;
  */
 public class Voflix extends Spider {
 
-    private String siteUrl = "";
+    private String siteUrl;
 
     private final String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
 
+    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
+
+    /**
+     * 爬虫代码初始化
+     *
+     * @param context 上下文对象
+     * @param extend  配置文件的 ext 参数
+     */
     @Override
     public void init(Context context, String extend) {
         super.init(context, extend);
-        try {
-            // 域名经常性发生变化，通过外部配置文件传入，可以方便修改
-            if (extend.endsWith("/")) {
-                extend = extend.substring(0, extend.lastIndexOf("/"));
-            }
-            siteUrl = extend;
-        } catch (Exception e) {
-            e.printStackTrace();
+        // 域名经常性发生变化，通过外部配置文件传入，可以方便修改
+        if (extend.endsWith("/")) {
+            extend = extend.substring(0, extend.lastIndexOf("/"));
         }
+        siteUrl = extend;
     }
 
+    /**
+     * 首页内容初始化，主要要完成分类id和值、二级筛选等，
+     * 也可以在这个方法里面完成首页推荐视频获取
+     *
+     * @param filter 不用管这个参数
+     * @return 返回字符串
+     */
     @Override
     public String homeContent(boolean filter) {
         try {
@@ -82,9 +95,63 @@ public class Voflix extends Spider {
         return "";
     }
 
+    /**
+     * 获取首页推荐视频
+     *
+     * @return 返回字符串
+     */
+    @Override
+    public String homeVideoContent() {
+        try {
+            String hotURL = siteUrl + "/label/new.html";
+            String html = getWebContent(hotURL);
+            Elements lis = Jsoup.parse(html)
+                    .select("[class=module-items module-poster-items]")
+                    .get(0)
+                    .select(".module-item");
+            JSONArray videos = new JSONArray();
+            for (Element li : lis) {
+                String vid = siteUrl + li.attr("href");
+                String name = li.attr("title");
+                String pic = li.select("img").attr("data-original");
+                String remark = li.select("[class=module-item-note]").text();
+                JSONObject vod = new JSONObject()
+                        .put("vod_id", vid)
+                        .put("vod_name", name)
+                        .put("vod_pic", pic)
+                        .put("vod_remarks", remark);
+                videos.put(vod);
+            }
+            JSONObject result = new JSONObject()
+                    .put("list", videos);
+            return result.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 分类内容方法
+     *
+     * @param tid    影片分类id值，来自 homeContent 里面的 type_id 值
+     * @param pg     第几页
+     * @param filter 不用管这个参数
+     * @param extend 用户已经选择的二级筛选数据
+     * @return 返回字符串
+     */
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
+            if (pg.equals("1")) {
+                hasNextPageMap.put(tid, true);
+            }
+            if (hasNextPageMap.containsKey(tid)) {
+                Boolean hasNextPage = hasNextPageMap.get(tid);
+                if (!hasNextPage) return "";
+            }
+
+
             // 筛选处理 start
             HashMap<String, String> ext = new HashMap<>();
             if (extend != null && extend.size() > 0) {
@@ -101,7 +168,7 @@ public class Voflix extends Spider {
             // https://www.voflix.com/show/1--------2---.html
 //            String cateUrl = siteUrl + String.format("/show/%s--------%s---.html", tid, pg);
             String cateUrl = siteUrl + String.format("/show/%s-%s-%s-%s-----%s---%s.html", cateId, area, by, classType, pg, year);
-            String content = getContent(cateUrl);
+            String content = getWebContent(cateUrl);
             Elements lis = Jsoup.parse(content)
                     .select(".module-items")
                     .select(".module-item");
@@ -118,20 +185,30 @@ public class Voflix extends Spider {
                         .put("vod_remarks", remark);
                 videos.put(vod);
             }
+            if (videos.length() == 0) {
+                hasNextPageMap.put(tid, false);
+                return "";
+            }
+            
             JSONObject result = new JSONObject()
-                    .put("page", Integer.parseInt(pg))
-                    .put("pagecount", Integer.MAX_VALUE)
-                    .put("limit", lis.size())
-                    .put("total", Integer.MAX_VALUE)
+                    .put("pagecount", 999)
                     .put("list", videos);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
+            hasNextPageMap.put(tid, false);
         }
         return "";
     }
 
-    private String getContent(String targetUrl) throws IOException {
+    /**
+     * 根据传入的URL获取网页源码
+     *
+     * @param targetUrl 请求的 URL
+     * @return 返回网页源码
+     * @throws IOException 抛出 IO 异常
+     */
+    private String getWebContent(String targetUrl) throws IOException {
         Request request = new Request.Builder()
                 .url(targetUrl)
                 .get()
@@ -142,47 +219,47 @@ public class Voflix extends Spider {
                 .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert) // 取消证书认证
                 .build();
         Response response = okHttpClient.newCall(request).execute();
+        if (response.body() == null) return "";
         String content = response.body().string();
         response.close();
         return content;
     }
 
+    /**
+     * 影片详情方法
+     *
+     * @param ids ids.get(0) 来源于分类方法或搜索方法的 vod_id
+     * @return 返回字符串
+     */
     @Override
     public String detailContent(List<String> ids) {
         try {
             String detailUrl = ids.get(0);
-            String content = getContent(detailUrl);
-            Document doc = Jsoup.parse(content);
+            String html = getWebContent(detailUrl);
+            Document doc = Jsoup.parse(html);
             Elements sources = doc.select(".module-play-list");
             Elements circuits = doc.select(".module-tab-item");
-
-            StringBuilder vod_play_url = new StringBuilder(); // 线路/播放源 里面的各集的播放页面链接
-            StringBuilder vod_play_from = new StringBuilder();  // 线路 / 播放源标题
+            Map<String, String> playMap = new LinkedHashMap<>();
             for (int i = 0; i < sources.size(); i++) {
                 String spanText = circuits.get(i).select("span").text();
                 String smallText = circuits.get(i).select("small").text();
                 String playFromText = spanText + "(共" + smallText + "集)";
-                vod_play_from.append(playFromText).append("$$$");
-                Elements aElementArray = sources.get(i).select("a");
-                for (int j = 0; j < aElementArray.size(); j++) {
-                    Element a = aElementArray.get(j);
+                Elements aElements = sources.get(i).select("a");
+                List<String> vodItems = new ArrayList<>();
+                for (Element a : aElements) {
                     String href = siteUrl + a.attr("href");
                     String text = a.select("span").text();
-                    vod_play_url.append(text).append("$").append(href);
-                    boolean notLastEpisode = j < aElementArray.size() - 1;
-                    vod_play_url.append(notLastEpisode ? "#" : "$$$");
+                    vodItems.add(text + "$" + href);
+                }
+                if (vodItems.size() > 0) {
+                    playMap.put(playFromText, TextUtils.join("#", vodItems));
                 }
             }
 
             // 影片标题
-            String title = doc.select(".module-info-heading")
-                    .get(0)
-                    .getElementsByTag("h1").text();
-
+            String title = doc.select(".module-info-heading > h1").text();
             // 图片
-            String pic = doc.select(".module-info-poster")
-                    .get(0)
-                    .select("img")
+            String pic = doc.select("[class=ls-is-cached lazy lazyload]")
                     .attr("data-original");
             Elements elements = doc.select(".module-info-heading").select(".module-info-tag-link");
             String classifyName = ""; // 影片类型
@@ -193,17 +270,17 @@ public class Voflix extends Spider {
                 year = elements.get(0).select("a").text();
                 area = elements.get(1).select("a").text();
             }
-            Elements moduleInfoItems = doc.select(".module-info-items").select(".module-info-item");
-            String remark = ""; // 备注
-            String actor = ""; // 演员
-            String director = ""; // 导演
-            if (moduleInfoItems.size() >= 6) {
-                remark = moduleInfoItems.get(5).select(".module-info-item-content").text();
-                actor = moduleInfoItems.get(3).select("a").text();
-                director = moduleInfoItems.get(1).select("a").text();
-            }
-            String brief = doc.select(".module-info-introduction-content").text();
-            JSONObject info = new JSONObject()
+            String remark = getStrByRegex("备注：(.*?)</div>", html);
+            String actor = getStrByRegex("主演：(.*?)</div>", html);
+            String director = getStrByRegex("导演：(.*?)</div>", html);
+            String description = doc.select(".module-info-introduction-content").text();
+
+            // 线路 / 播放源标题拼接的字符串
+            String vod_play_from = TextUtils.join("$$$", playMap.keySet());
+            // 线路 / 播放源 里面的各集的播放页面链接拼接的字符串
+            String vod_play_url = TextUtils.join("$$$", playMap.values());
+
+            JSONObject vodInfo = new JSONObject()
                     .put("vod_id", ids.get(0)) // 必填
                     .put("vod_name", title)
                     .put("vod_pic", pic)
@@ -213,14 +290,14 @@ public class Voflix extends Spider {
                     .put("vod_remarks", remark) // 选填
                     .put("vod_actor", actor) // 选填
                     .put("vod_director", director) // 选填
-                    .put("vod_content", brief) // 选填
-                    .put("vod_play_from", vod_play_from.toString()) // 必须有，否则播放可能存在问题
-                    .put("vod_play_url", vod_play_url.toString()); // 必须有，否则播放可能存在问题
+                    .put("vod_content", description) // 选填
+                    .put("vod_play_from", vod_play_from) // 必须有，否则播放可能存在问题
+                    .put("vod_play_url", vod_play_url); // 必须有，否则播放可能存在问题
 
-            JSONArray list_info = new JSONArray()
-                    .put(info);
+            JSONArray listInfo = new JSONArray()
+                    .put(vodInfo);
             JSONObject result = new JSONObject()
-                    .put("list", list_info);
+                    .put("list", listInfo);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -228,12 +305,46 @@ public class Voflix extends Spider {
         return "";
     }
 
+
+    /**
+     * 正则获取字符串
+     * @param regexStr  正则字符串
+     * @param htmlStr   网页源码
+     * @return  返回正则获取的字符串结果
+     */
+    private String getStrByRegex(String regexStr, String htmlStr) {
+        if (regexStr == null) {
+            return "";
+        }
+        try {
+            Pattern pattern = Pattern.compile(regexStr, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(htmlStr);
+            if (matcher.find()) {
+                return matcher.group(1)
+                        .trim()
+                        .replaceAll("</?[^>]+>", "")
+                        .replace("\n", "")
+                        .replace("\t", "")
+                        .trim();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 搜索
+     *
+     * @param key   关键字/词
+     * @param quick 不要使用这个参数
+     * @return 返回值
+     */
     @Override
     public String searchContent(String key, boolean quick) {
         try {
-            // https://www.voflix.com/index.php/ajax/suggest?mid=1&wd=我&limit=20
             String url = siteUrl + "/index.php/ajax/suggest?mid=1&wd=" + URLEncoder.encode(key) + "&limit=20";
-            String content = getContent(url);
+            String content = getWebContent(url);
             JSONArray list = new JSONObject(content).getJSONArray("list");
             JSONArray videos = new JSONArray();
             for (int i = 0; i < list.length(); i++) {
