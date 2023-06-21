@@ -1,13 +1,12 @@
 {
-  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;e208059e4d93818fdf3e3bee1a6f7302",
+  "spider": "https://ghproxy.net/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;78ee73b7f1579f03e609b740c95bf408",
   "sites": [
     {
-      "key": "酷云77(js)",
-      "name": "酷云77(js)",
+      "key": "Kunyu77",
+      "name": "酷云77",
       "type": 3,
-      "api": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/libs/drpy2.min.js",
-      "searchable": 1,
-      "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/酷云77.js"
+      "api": "csp_Kunyu77",
+      "searchable": 1
     },
     {
       "key": "豆瓣(js)",
