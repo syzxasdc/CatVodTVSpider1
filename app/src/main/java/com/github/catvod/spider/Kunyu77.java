@@ -28,14 +28,6 @@ import java.util.Set;
 public class Kunyu77 extends Spider {
     private final String siteUrl = "http://api.tyun77.cn";
 
-    private final String uAgent = "okhttp/3.12.0";
-
-    private HashMap<String, String> getHeaders(String url) {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("user-agent", uAgent);
-        return headers;
-    }
-
     @Override
     public String homeContent(boolean filter) {
         try {
@@ -244,7 +236,7 @@ public class Kunyu77 extends Spider {
     @Override
     public String detailContent(List<String> ids) {
         try {
-            String url = siteUrl + "/api.php/provide/videoDetail?ids=" + ids.get(0);
+            String url = siteUrl + "/api.php/provide/videoDetail?devid=453CA5D864457C7DB4D0EAA93DE96E66&package=com.sevenVideo.app.android&version=&ids=" + ids.get(0);
             String content = getWebContent(url);
             JSONObject dataObject = new JSONObject(decryptResponse(content));
             JSONObject vObj = dataObject.getJSONObject("data");
@@ -263,7 +255,7 @@ public class Kunyu77 extends Spider {
             vodAtom.put("vod_director", vObj.getString("director"));
             vodAtom.put("vod_content", vObj.getString("brief").trim());
 
-            url = siteUrl + "/api.php/provide/videoPlaylist?ids=" + ids.get(0);
+            url = siteUrl + "/api.php/provide/videoPlaylist?devid=453CA5D864457C7DB4D0EAA93DE96E66&package=com.sevenVideo.app.android&version=&ids=" + ids.get(0);
             content = getWebContent(url);
             JSONArray episodes = new JSONObject(content).getJSONObject("data").getJSONArray("episodes");
             LinkedHashMap<String, ArrayList<String>> playlist = new LinkedHashMap<>();
