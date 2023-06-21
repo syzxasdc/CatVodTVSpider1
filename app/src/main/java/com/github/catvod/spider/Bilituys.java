@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author zhixc
@@ -26,6 +29,8 @@ public class Bilituys extends Spider {
     private final String siteUrl = "https://www.bilituys.com";
 
     private final String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
+
+    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
 
     /**
      * 首页内容
@@ -79,6 +84,14 @@ public class Bilituys extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
+            if (pg.equals("1")) {
+                hasNextPageMap.put(tid, true);
+            }
+            if (hasNextPageMap.containsKey(tid)) {
+                Boolean hasNextPage = hasNextPageMap.get(tid);
+                if (!hasNextPage) return "";
+            }
+
             HashMap<String, String> ext = new HashMap<>();
             if (extend != null && extend.size() > 0) {
                 ext.putAll(extend);
@@ -111,15 +124,18 @@ public class Bilituys extends Spider {
                         .put("vod_remarks", remark);
                 videos.put(vod);
             }
+            if (videos.length() == 0) {
+                hasNextPageMap.put(tid, false);
+                return "";
+            }
+
             JSONObject result = new JSONObject()
-                    .put("page", Integer.parseInt(pg))
-                    .put("pagecount", Integer.MAX_VALUE)
-                    .put("limit", lis.size())
-                    .put("total", Integer.MAX_VALUE)
+                    .put("pagecount", 999)
                     .put("list", videos);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
+            hasNextPageMap.put(tid, false);
         }
         return "";
     }
@@ -148,7 +164,6 @@ public class Bilituys extends Spider {
     public String detailContent(List<String> ids) {
         try {
             String detailUrl = ids.get(0);
-//            String durl = ids.get(0);
             String content = getWebContent(detailUrl);
             Document detailPage = Jsoup.parse(content);
             Elements sourceList = detailPage.select("[class=stui-content__playlist sort-list maxheight clearfix]");
@@ -274,13 +289,32 @@ public class Bilituys extends Spider {
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) {
         try {
+            String lastURL = id;
+            int parseFlag = 1;
+            String content = getWebContent(id);
+            Pattern pattern = Pattern.compile("player_aaaa=(.*?)</script>");
+            Matcher matcher = pattern.matcher(content);
+            if (matcher.find()) {
+                String url = new JSONObject(matcher.group(1).trim())
+                        .optString("url");
+                if (url.contains(".m3u8") || url.contains(".mp4")) {
+                    lastURL = url;
+                    parseFlag = 0;
+                }
+            }
             HashMap<String, String> header = new HashMap<>();
             header.put("user-agent", userAgent);
+            header.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+            header.put("accept-encoding", "gzip, deflate, br");
+            header.put("accept-language", "zh-CN,zh;q=0.9");
+            header.put("referer", siteUrl + "/");
+            header.put("upgrade-insecure-requests", "1");
+
             JSONObject result = new JSONObject()
-                    .put("parse", 1)
+                    .put("parse", parseFlag)
                     .put("header", header)
                     .put("playUrl", "")
-                    .put("url", id);
+                    .put("url", lastURL);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
