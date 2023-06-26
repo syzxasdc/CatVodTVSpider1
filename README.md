@@ -64,9 +64,14 @@
   {
     "name": "m3u直播名称2",
     "url": "https://lmn.m3u&&&https://opq.jpg" // 同样的，带图片链接
+  },
+  {
+    "name": "m3u直播名称3(分组)",
+    "url": "https://rst.m3u&&&http://hij.png", // m3u分组的最好带上图片，不然没有图片
+    "group": 1  // 要分组的话，group 值为 1，其他情况不分组
   }
 ]
 ```
 - m3u 格式的文件，里面一般带有图片，如果在json配置文件里面写了图片链接，那么就以json配置文件的为主。
-- 一些直播源来自：<font style="color:blue">youshandefeiyang</font> 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、<font style="color:blue">Ftindy</font> 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、<font style="color:blue">范明明</font>的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 <font style="color:blue">youshandefeiyang</font>、<font style="color:blue">Ftindy</font>、<font style="color:blue">范明明</font>的分享。
+- 一些直播源来自：youshandefeiyang 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、Ftindy 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、范明明的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 youshandefeiyang、Ftindy、范明明的分享。
 
