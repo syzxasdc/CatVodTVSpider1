@@ -12,8 +12,18 @@
     "url": "https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/bestv.m3u"
   },
   {
+    "name": "听迪百事通(分组)",
+    "url": "https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/bestv.m3u&&&https://s1.ax1x.com/2023/05/04/p9tgI81.png",
+    "group": 1
+  },
+  {
     "name": "听迪爱尚",
     "url": "https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/aishang.m3u"
+  },
+  {
+    "name": "听迪爱尚(分组)",
+    "url": "https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/aishang.m3u&&&https://s1.ax1x.com/2023/05/04/p9tgI81.png",
+    "group": 1
   },
   {
     "name": "虎牙一起看",
