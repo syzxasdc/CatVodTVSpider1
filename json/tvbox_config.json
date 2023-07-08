@@ -1,5 +1,5 @@
 {
-  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;f8849bca6a6ef9e31d6c9e94da6bb7a3",
+  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;6df8c715f6b6fe5cc3dc4012635780c4",
   "sites": [
     {
       "key": "Kunyu77",
@@ -12,7 +12,7 @@
       "key": "Douban",
       "name": "豆瓣",
       "type": 3,
-      "api": "csp_Douban",
+      "api": "csp_DoubanForTVBox",
       "searchable": 0
     },
     {
@@ -45,14 +45,6 @@
       "api": "csp_AppYsV2",
       "searchable": 1,
       "ext": "http://cms.maoyingshi.cc/api.php/app/"
-    },
-    {
-      "key": "多米",
-      "name": "多米[V2]",
-      "type": 3,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "ext": "http://v.dmdh.top/api.php/app/"
     },
     {
       "key": "360",
