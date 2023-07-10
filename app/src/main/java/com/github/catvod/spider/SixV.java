@@ -11,7 +11,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -24,21 +23,17 @@ import java.util.regex.Pattern;
  */
 public class SixV extends Spider {
 
-    private String siteUrl = "https://www.66s.cc";
+    private String siteURL;
 
     private final String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
 
     @Override
     public void init(Context context, String extend) {
         super.init(context, extend);
-        try {
-            if (extend.endsWith("/")) {
-                extend = extend.substring(0, extend.lastIndexOf("/"));
-            }
-            siteUrl = extend;
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (extend.endsWith("/")) {
+            extend = extend.substring(0, extend.lastIndexOf("/"));
         }
+        siteURL = extend;
     }
 
     @Override
@@ -78,25 +73,24 @@ public class SixV extends Spider {
                 ext.putAll(extend);
             }
             String classType = ext.get("class") == null ? "" : ext.get("class");
-            // 筛选处理 end
-
             if (tid.equals("my_tid_tv") && classType.equals("")) {
                 // 电视剧没有筛选时默认给个值
                 classType = "dianshiju";
             }
+            // 筛选处理 end
 
-            String cateUrl = siteUrl + "/" + classType;
+            String cateURL = siteURL + "/" + classType;
             if (!pg.equals("1")) {
-                cateUrl += "/index_" + pg + ".html";
+                cateURL += "/index_" + pg + ".html";
             }
-            String content = getWebContent(cateUrl);
+            String content = getWebContent(cateURL);
             Elements divElements = Jsoup.parse(content)
                     .select("#post_container")
                     .select("[class=post_hover]");
             JSONArray videos = new JSONArray();
             for (Element div : divElements) {
                 Element li = div.select("[class=zoom]").get(0);
-                String vid = siteUrl + li.attr("href");
+                String vid = siteURL + li.attr("href");
                 String name = li.attr("title");
                 String pic = li.select("img").attr("src");
                 String remark = div.select("[rel=category tag]").text();
@@ -118,7 +112,7 @@ public class SixV extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetUrl) throws IOException {
+    private String getWebContent(String targetUrl) throws Exception {
         Request request = new Request.Builder()
                 .url(targetUrl)
                 .get()
@@ -127,6 +121,7 @@ public class SixV extends Spider {
         OkHttpClient okHttpClient = new OkHttpClient()
                 .newBuilder()
                 .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
+                .hostnameVerifier((hostname, session) -> true)
                 .build();
         Response response = okHttpClient.newCall(request).execute();
         if (response.body() == null) return "";
@@ -138,8 +133,8 @@ public class SixV extends Spider {
     @Override
     public String detailContent(List<String> ids) {
         try {
-            String detailUrl = ids.get(0);
-            String content = getWebContent(detailUrl);
+            String detailURL = ids.get(0);
+            String content = getWebContent(detailURL);
             Document doc = Jsoup.parse(content);
             Elements sourceList = doc.select("#post_content");
             // 磁力链接只能选择一条，多了，TVBox就无法识别播放了。
@@ -199,14 +194,16 @@ public class SixV extends Spider {
                     .put("vod_remarks", remark)
                     .put("vod_actor", actor)
                     .put("vod_director", director)
-                    .put("vod_content", description)
-                    .put("vod_play_from", vod_play_from)
-                    .put("vod_play_url", vod_play_url);
+                    .put("vod_content", description);
+            if (vod_play_url.length() > 0) {
+                vodInfo.put("vod_play_from", vod_play_from)
+                        .put("vod_play_url", vod_play_url);
+            }
 
-            JSONArray listInfo = new JSONArray()
+            JSONArray jsonArray = new JSONArray()
                     .put(vodInfo);
             JSONObject result = new JSONObject()
-                    .put("list", listInfo);
+                    .put("list", jsonArray);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,9 +212,6 @@ public class SixV extends Spider {
     }
 
     private String getStrByRegex(Pattern pattern, String str) {
-        if (pattern == null) {
-            return "";
-        }
         try {
             Matcher matcher = pattern.matcher(str);
             if (matcher.find()) {
@@ -232,7 +226,7 @@ public class SixV extends Spider {
     @Override
     public String searchContent(String key, boolean quick) {
         try {
-            String searchUrl = siteUrl + "/e/search/index.php";
+            String searchURL = siteURL + "/e/search/index.php";
             RequestBody formBody = new FormBody.Builder()
                     .add("show", "title")
                     .add("tempid", "1")
@@ -243,24 +237,24 @@ public class SixV extends Spider {
                     .addEncoded("keyboard", URLEncoder.encode(key, "utf8"))
                     .build();
             Request request = new Request.Builder()
-                    .url(searchUrl)
+                    .url(searchURL)
                     .addHeader("user-agent", userAgent)
                     .post(formBody)
                     .build();
             OkHttpClient okHttpClient = new OkHttpClient()
                     .newBuilder()
                     .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
+                    .hostnameVerifier((hostname, session) -> true)
                     .build();
             Response response = okHttpClient.newCall(request).execute();
             if (response.body() == null) return "";
             String content = response.body().string();
             response.close(); // 关闭响应资源
-            Document doc = Jsoup.parse(content);
-            Elements list = doc.select("#post_container")
+            Elements items = Jsoup.parse(content).select("#post_container")
                     .select("[class=zoom]");
             JSONArray videos = new JSONArray();
-            for (Element item : list) {
-                String vid = siteUrl + item.attr("href");
+            for (Element item : items) {
+                String vid = siteURL + item.attr("href");
                 String name = item.attr("title").replaceAll("</?[^>]+>", "");
                 String pic = item.select("img").attr("src");
                 JSONObject vod = new JSONObject()
