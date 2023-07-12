@@ -21,8 +21,6 @@ public class SP360 extends Spider {
 
     private final String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:102.0) Gecko/20100101 Firefox/102.0";
 
-    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
-
     @Override
     public String homeContent(boolean filter) {
         try {
@@ -65,13 +63,6 @@ public class SP360 extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
-            if (pg.equals("1")) {
-                hasNextPageMap.put(tid, true);
-            }
-            if (hasNextPageMap.containsKey(tid)) {
-                Boolean hasNextPage = hasNextPageMap.get(tid);
-                if (!hasNextPage) return "";
-            }
             HashMap<String, String> ext = new HashMap<>();
             if (extend != null && extend.size() > 0) {
                 ext.putAll(extend);
@@ -118,10 +109,6 @@ public class SP360 extends Spider {
             String content = getWebContent(cateUrl, referer);
             JSONArray videos = new JSONArray();
             JSONArray items = new JSONObject(content).optJSONObject("data").optJSONArray("movies");
-            if (items.length() == 0) {
-                hasNextPageMap.put(tid, false);
-                return "";
-            }
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.optJSONObject(i);
                 String id = item.optString("id");
@@ -147,7 +134,6 @@ public class SP360 extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            hasNextPageMap.put(tid, false);
         }
         return "";
     }

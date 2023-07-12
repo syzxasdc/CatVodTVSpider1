@@ -30,8 +30,6 @@ public class Voflix extends Spider {
 
     private final String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
 
-    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
-
     /**
      * 爬虫代码初始化
      *
@@ -143,15 +141,6 @@ public class Voflix extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
-            if (pg.equals("1")) {
-                hasNextPageMap.put(tid, true);
-            }
-            if (hasNextPageMap.containsKey(tid)) {
-                Boolean hasNextPage = hasNextPageMap.get(tid);
-                if (!hasNextPage) return "";
-            }
-
-
             // 筛选处理 start
             HashMap<String, String> ext = new HashMap<>();
             if (extend != null && extend.size() > 0) {
@@ -185,18 +174,12 @@ public class Voflix extends Spider {
                         .put("vod_remarks", remark);
                 videos.put(vod);
             }
-            if (videos.length() == 0) {
-                hasNextPageMap.put(tid, false);
-                return "";
-            }
-            
             JSONObject result = new JSONObject()
                     .put("pagecount", 999)
                     .put("list", videos);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            hasNextPageMap.put(tid, false);
         }
         return "";
     }

@@ -23,8 +23,6 @@ import java.util.*;
 public class Kunyu77 extends Spider {
     private final String siteUrl = "http://api.tyun77.cn";
 
-    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
-
     @Override
     public String homeContent(boolean filter) {
         try {
@@ -192,15 +190,6 @@ public class Kunyu77 extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
-            if (pg.equals("1")) {
-                hasNextPageMap.put(tid, true);
-            }
-            if (hasNextPageMap.containsKey(tid)) {
-                Boolean hasNextPage = hasNextPageMap.get(tid);
-                if (!hasNextPage) return "";
-            }
-
-
             String url = siteUrl + "/api.php/provide/searchFilter?type_id=" + tid + "&pagenum=" + pg + "&pagesize=24";
             Set<String> keys = extend.keySet();
             for (String key : keys) {
@@ -223,12 +212,6 @@ public class Kunyu77 extends Spider {
                 videos.put(v);
             }
 
-            if (videos.length() == 0) {
-                hasNextPageMap.put(tid, false);
-                return "";
-            }
-
-
             JSONObject result = new JSONObject();
             int limit = 24;
             int page = Integer.parseInt(dataObject.getString("page"));
@@ -241,7 +224,6 @@ public class Kunyu77 extends Spider {
             result.put("list", videos);
             return result.toString();
         } catch (Exception e) {
-            hasNextPageMap.put(tid, false);
         }
         return "";
     }

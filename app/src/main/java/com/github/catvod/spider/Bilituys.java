@@ -30,8 +30,6 @@ public class Bilituys extends Spider {
 
     private final String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
 
-    private final Map<String, Boolean> hasNextPageMap = new HashMap<>();
-
     /**
      * 首页内容
      */
@@ -84,14 +82,6 @@ public class Bilituys extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
-            if (pg.equals("1")) {
-                hasNextPageMap.put(tid, true);
-            }
-            if (hasNextPageMap.containsKey(tid)) {
-                Boolean hasNextPage = hasNextPageMap.get(tid);
-                if (!hasNextPage) return "";
-            }
-
             HashMap<String, String> ext = new HashMap<>();
             if (extend != null && extend.size() > 0) {
                 ext.putAll(extend);
@@ -124,18 +114,12 @@ public class Bilituys extends Spider {
                         .put("vod_remarks", remark);
                 videos.put(vod);
             }
-            if (videos.length() == 0) {
-                hasNextPageMap.put(tid, false);
-                return "";
-            }
-
             JSONObject result = new JSONObject()
                     .put("pagecount", 999)
                     .put("list", videos);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            hasNextPageMap.put(tid, false);
         }
         return "";
     }
