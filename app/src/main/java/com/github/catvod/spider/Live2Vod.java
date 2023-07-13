@@ -362,7 +362,7 @@ public class Live2Vod extends Spider {
             header.put("User-Agent", userAgent);
             JSONObject result = new JSONObject()
                     .put("parse", 0) // 直播链接都是可以直接播放的，所以直连就行
-                    .put("header", header)
+                    .put("header", header.toString())
                     .put("playUrl", "")
                     .put("url", id);
             return result.toString();

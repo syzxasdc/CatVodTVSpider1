@@ -242,10 +242,10 @@ public class NongMing extends Spider {
     public String playerContent(String flag, String id, List<String> vipFlags) {
         try {
             HashMap<String, String> header = new HashMap<>();
-            header.put("user-agent", userAgent);
+            header.put("User-Agent", userAgent);
             JSONObject result = new JSONObject()
                     .put("parse", 1) // 1=嗅探  0=直连
-                    .put("header", header)
+                    .put("header", header.toString())
                     .put("playUrl", "")
                     .put("url", id);
             return result.toString();

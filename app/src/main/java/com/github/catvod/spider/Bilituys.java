@@ -278,16 +278,16 @@ public class Bilituys extends Spider {
                 }
             }
             HashMap<String, String> header = new HashMap<>();
-            header.put("user-agent", userAgent);
-            header.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
-            header.put("accept-encoding", "gzip, deflate, br");
-            header.put("accept-language", "zh-CN,zh;q=0.9");
-            header.put("referer", siteUrl + "/");
-            header.put("upgrade-insecure-requests", "1");
+            header.put("User-Agent", userAgent);
+            header.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+            header.put("Accept-encoding", "gzip, deflate, br");
+            header.put("Accept-language", "zh-CN,zh;q=0.9");
+            header.put("Referer", siteUrl + "/");
+            header.put("Upgrade-insecure-requests", "1");
 
             JSONObject result = new JSONObject()
                     .put("parse", parseFlag)
-                    .put("header", header)
+                    .put("header", header.toString())
                     .put("playUrl", "")
                     .put("url", lastURL);
             return result.toString();
