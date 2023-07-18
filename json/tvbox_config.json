@@ -1,20 +1,27 @@
 {
   "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;51c491b316e98cb63c235ea7dd6d0a88",
+  "lives": [
+    {
+      "group": "redirect",
+      "channels": [
+        {
+          "name": "live",
+          "urls": [
+            "proxy://do=live&type=txt&ext=http://home.jundie.top:81/Cat/tv/live.txt"
+          ]
+        }
+      ]
+    }
+  ],
   "sites": [
-    {
-      "key": "Douban",
-      "name": "豆瓣",
-      "type": 3,
-      "api": "csp_DoubanForTVBox",
-      "searchable": 0
-    },
-    {
-      "key": "Kunyu77",
-      "name": "酷云77",
-      "type": 3,
-      "api": "csp_Kunyu77",
-      "searchable": 1
-    },
+    {"key": "Douban", "name": "豆瓣", "type": 3, "api": "csp_DoubanForTVBox", "searchable": 0},
+    {"key": "SixV", "name": "6V电影网(磁力)", "type": 3, "api": "csp_SixV", "searchable": 1, "ext": "https://www.6vdy.org/"},
+    {"key": "PiaoHua", "name": "新飘花电影网(磁力)", "type": 3, "api": "csp_BTPiaoHua", "searchable": 1},
+    {"key": "厂长", "name": "厂长", "type": 3, "api": "csp_Czsapp", "searchable": 1},
+    {"key": "Anime1", "name": "动漫", "type": 3, "api": "csp_Anime1", "searchable": 1},
+    {"key": "NongMing", "name": "农民影视", "type": 3, "api": "csp_NongMing", "searchable": 1},
+    {"key": "Voflix", "name": "Voflix", "type": 3, "api": "csp_Voflix", "searchable": 1, "ext": "https://www.voflix.me/"},
+    {"key": "哔哩兔", "name": "哔哩兔影视", "type": 3, "api": "csp_Bilituys", "searchable": 1},
     {
       "key": "Live2Vod",
       "name": "电视直播",
@@ -31,28 +38,9 @@
       "searchable": 0,
       "ext": "https://ghproxy.com/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/json/live.json"
     },
-    {
-      "key": "Yj1211",
-      "name": "直播综合",
-      "type": 3,
-      "api": "csp_Yj1211",
-      "searchable": 1
-    },
-    {
-      "key": "如意",
-      "name": "如意[V2]",
-      "type": 3,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "ext": "http://cms.maoyingshi.cc/api.php/app/"
-    },
-    {
-      "key": "360",
-      "name": "360",
-      "type": 3,
-      "api": "csp_SP360",
-      "searchable": 1
-    },
+    {"key": "Yj1211", "name": "直播综合", "type": 3, "api": "csp_Yj1211", "searchable": 1},
+    {"key": "如意", "name": "如意[V2]", "type": 3, "api": "csp_AppYsV2", "searchable": 1, "ext": "http://cms.maoyingshi.cc/api.php/app/"},
+    {"key": "360", "name": "360", "type": 3, "api": "csp_SP360", "searchable": 1},
     {
       "key": "我的哔哩(js)",
       "name": "我的哔哩(js)",
@@ -61,70 +49,8 @@
       "searchable": 1,
       "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/我的哔哩.js"
     },
-    {
-      "key": "IQIYI",
-      "name": "IQIYI",
-      "type": 3,
-      "api": "csp_IQIYI",
-      "searchable": 1
-    },
-    {
-      "key": "MGTV",
-      "name": "MGTV",
-      "type": 3,
-      "api": "csp_MGTV",
-      "searchable": 1
-    },
-    {
-      "key": "PiaoHua",
-      "name": "新飘花电影网(磁力)",
-      "type": 3,
-      "api": "csp_BTPiaoHua",
-      "searchable": 1
-    },
-    {
-      "key": "SixV",
-      "name": "6V电影网(磁力)",
-      "type": 3,
-      "api": "csp_SixV",
-      "searchable": 1,
-      "ext": "https://www.6vdy.org/"
-    },
-    {
-      "key": "厂长",
-      "name": "厂长",
-      "type": 3,
-      "api": "csp_Czsapp",
-      "searchable": 1
-    },
-    {
-      "key": "低端影视",
-      "name": "低端影视",
-      "type": 3,
-      "api": "csp_Ddrk",
-      "searchable": 1
-    },
-    {
-      "key": "Anime1",
-      "name": "动漫",
-      "type": 3,
-      "api": "csp_Anime1",
-      "searchable": 1
-    },
-    {
-      "key": "NongMing",
-      "name": "农民影视",
-      "type": 3,
-      "api": "csp_NongMing",
-      "searchable": 1
-    },
-    {
-      "key": "小苹果",
-      "name": "小苹果",
-      "type": 3,
-      "api": "csp_LiteApple",
-      "searchable": 1
-    },
+    {"key": "IQIYI", "name": "IQIYI", "type": 3, "api": "csp_IQIYI", "searchable": 1},
+    {"key": "MGTV", "name": "MGTV", "type": 3, "api": "csp_MGTV", "searchable": 1},
     {
       "key": "爱看(js)",
       "name": "爱看(js)",
@@ -173,158 +99,37 @@
       "searchable": 1,
       "ext": "https://www.agit.ai/fantaiying/dr_py/raw/branch/main/js/子子影视.js"
     },
-    {
-      "key": "Voflix",
-      "name": "Voflix",
-      "type": 3,
-      "api": "csp_Voflix",
-      "searchable": 1,
-      "ext": "https://www.voflix.me/"
-    },
-    {
-      "key": "哔哩兔",
-      "name": "哔哩兔影视",
-      "type": 3,
-      "api": "csp_Bilituys",
-      "searchable": 1
-    },
-    {
-      "key": "push_agent",
-      "name": "推送(播放页链接或磁力)",
-      "type": 3,
-      "api": "csp_PushAgent",
-      "searchable": 0
-    }
+    {"key": "push_agent", "name": "推送(播放页链接或磁力)", "type": 3, "api": "csp_PushAgent", "searchable": 0}
   ],
   "parses": [
-    {
-      "name": "综合",
-      "type": 0,
-      "url": "https://jx.jsonplayer.com/player/?url="
-    },
     {
       "name": "爱酷",
       "type": 0,
       "url": "https://jx.zhanlangbu.com/?url=",
       "ext": {
-        "flag": [
-          "qq",
-          "腾讯",
-          "qiyi",
-          "爱奇艺",
-          "奇艺",
-          "youku",
-          "优酷",
-          "mgtv",
-          "芒果",
-          "letv",
-          "乐视",
-          "pptv",
-          "PPTV",
-          "sohu",
-          "bilibili",
-          "哔哩哔哩",
-          "哔哩"
-        ],
+        "flag": ["qq", "腾讯", "qiyi", "爱奇艺", "奇艺", "youku", "优酷", "mgtv", "芒果", "letv", "乐视", "pptv", "PPTV", "sohu", "bilibili", "哔哩哔哩", "哔哩"],
         "header": {
           "User-Agent": "okhttp/4.1.0"
         }
       }
     },
-    {
-      "name": "Json聚合",
-      "type": 3,
-      "url": "Demo"
-    },
-    {
-      "name": "Json并发",
-      "type": 2,
-      "url": "Parallel"
-    },
-    {
-      "name": "Json轮询",
-      "type": 2,
-      "url": "Sequence"
-    }
+    {"name": "综合", "type": 0, "url": "https://jx.jsonplayer.com/player/?url="},
+    {"name": "Json聚合", "type": 3, "url": "Demo"},
+    {"name": "Json并发", "type": 2, "url": "Parallel"},
+    {"name": "Json轮询", "type": 2, "url": "Sequence"}
   ],
-  "flags": [
-    "youku",
-    "qq",
-    "QQ",
-    "iqiyi",
-    "qiyi",
-    "letv",
-    "sohu",
-    "tudou",
-    "pptv",
-    "PPTV",
-    "mgtv",
-    "wasu",
-    "bilibili",
-    "xmm",
-    "xigua",
-    "m1905"
+  "flags": ["youku", "qq", "QQ", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "PPTV", "mgtv", "wasu", "bilibili", "xmm", "xigua", "m1905"],
+  "rules":[
+    {"name":"量子广告","hosts":["vip.lz","hd.lz"],"regex":["#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.433333,[\\s\\S]*?#EXT-X-DISCONTINUITY","#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"]},
+    {"name":"非凡广告","hosts":["vip.ffzy"],"regex":["#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.666667,[\\s\\S]*?#EXT-X-DISCONTINUITY","#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"]},
+    {"name":"火山嗅探","host":["huoshan.com"],"regex":["item_id="]},
+    {"name":"抖音嗅探","host":["douyin.com"],"regex":["is_play_url="]}
   ],
+  "wallpaper": "http://我不是.肥猫.love:63/pic/feimao.php",
   "ads": [
+    "wan.51img1.com",
     "iqiyi.hbuioo.com",
     "vip.ffzyad.com",
-    "wan.51img1.com",
-    "mimg.0c1q0l.cn",
-    "www.googletagmanager.com",
-    "www.google-analytics.com",
-    "mc.usihnbcq.cn",
-    "mg.g1mm3d.cn",
-    "mscs.svaeuzh.cn",
-    "cnzz.hhttm.top",
-    "tp.vinuxhome.com",
-    "cnzz.mmstat.com",
-    "www.baihuillq.com",
-    "s23.cnzz.com",
-    "z3.cnzz.com",
-    "c.cnzz.com",
-    "stj.v1vo.top",
-    "z12.cnzz.com",
-    "img.mosflower.cn",
-    "tips.gamevvip.com",
-    "ehwe.yhdtns.com",
-    "xdn.cqqc3.com",
-    "www.jixunkyy.cn",
-    "sp.chemacid.cn",
-    "hm.baidu.com",
-    "s9.cnzz.com",
-    "z6.cnzz.com",
-    "um.cavuc.com",
-    "mav.mavuz.com",
-    "wofwk.aoidf3.com",
-    "z5.cnzz.com",
-    "xc.hubeijieshikj.cn",
-    "tj.tianwenhu.com",
-    "xg.gars57.cn",
-    "k.jinxiuzhilv.com",
-    "cdn.bootcss.com",
-    "ppl.xunzhuo123.com",
-    "xomk.jiangjunmh.top",
-    "img.xunzhuo123.com",
-    "z1.cnzz.com",
-    "s13.cnzz.com",
-    "xg.huataisangao.cn",
-    "z7.cnzz.com",
-    "xg.huataisangao.cn",
-    "z2.cnzz.com",
-    "s96.cnzz.com",
-    "q11.cnzz.com",
-    "thy.dacedsfa.cn",
-    "xg.whsbpw.cn",
-    "s19.cnzz.com",
-    "z8.cnzz.com",
-    "s4.cnzz.com",
-    "f5w.as12df.top",
-    "ae01.alicdn.com",
-    "www.92424.cn",
-    "k.wudejia.com",
-    "vivovip.mmszxc.top",
-    "qiu.xixiqiu.com",
-    "cdnjs.hnfenxun.com",
-    "cms.qdwght.com"
+    "https://lf1-cdn-tos.bytegoofy.com/obj/tos-cn-i-dy/455ccf9e8ae744378118e4bd289288dd"
   ]
 }
