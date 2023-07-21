@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class BTPiaoHua extends Spider {
 
-    private final String siteUrl = "https://www.xpiaohua.com";
+    private final String siteURL = "https://www.xpiaohua.com";
 
     private final String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
 
@@ -104,16 +104,15 @@ public class BTPiaoHua extends Spider {
             // https://www.xpiaohua.com/column/xiju/
             // 第二页
             // https://www.xpiaohua.com/column/xiju/list_2.html
-            String cateUrl = siteUrl + "/column" + tid;
+            String cateURL = siteURL + "/column" + tid;
             if (!pg.equals("1")) {
-                cateUrl += "/list_" + pg + ".html";
+                cateURL += "/list_" + pg + ".html";
             }
-
-            String content = getWebContent(cateUrl);
+            String html = getWebContent(cateURL);
             JSONArray videos = new JSONArray();
-            Elements listElements = Jsoup.parse(content).select("#list").select("dl");
-            for (Element item : listElements) {
-                String vid = item.select("strong").select("a").attr("href");
+            Elements items = Jsoup.parse(html).select("#list dl");
+            for (Element item : items) {
+                String vid = item.select("strong a").attr("href");
                 String name = item.select("strong").text();
                 String pic = item.select("img").attr("src");
                 JSONObject vod = new JSONObject()
@@ -125,10 +124,7 @@ public class BTPiaoHua extends Spider {
             }
 
             JSONObject result = new JSONObject()
-                    .put("page", Integer.parseInt(pg))
-                    .put("pagecount", Integer.MAX_VALUE)
-                    .put("limit", listElements.size())
-                    .put("total", Integer.MAX_VALUE)
+                    .put("pagecount", 999)
                     .put("list", videos);
             return result.toString();
         } catch (Exception e) {
@@ -137,15 +133,16 @@ public class BTPiaoHua extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetUrl) throws IOException {
+    private String getWebContent(String targetURL) throws IOException {
         Request request = new Request.Builder()
                 .addHeader("User-Agent", userAgent)
                 .get()
-                .url(targetUrl)
+                .url(targetURL)
                 .build();
         OkHttpClient okHttpClient = new OkHttpClient()
                 .newBuilder()
                 .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
+                .hostnameVerifier((hostname, session) -> true)
                 .build();
         Response response = okHttpClient.newCall(request).execute();
         if (response.body() == null) return "";
@@ -157,48 +154,38 @@ public class BTPiaoHua extends Spider {
     @Override
     public String detailContent(List<String> ids) {
         try {
-            String detailUrl = ids.get(0);
-            String content = getWebContent(detailUrl);
-            Document doc = Jsoup.parse(content);
-            Element source = doc.select("table").get(0);
-
-            StringBuilder vod_play_url = new StringBuilder(); // 线路/播放源 里面的各集的播放页面链接
-            String vod_play_from = "";  // 线路 / 播放源标题
-            vod_play_from = vod_play_from + "magnet" + "$$$";
-            Elements aList = source.select("a");
-            for (int j = 0; j < aList.size(); j++) {
-                if (!vod_play_url.toString().equals("")) {
+            String detailURL = ids.get(0);
+            String html = getWebContent(detailURL);
+            Document doc = Jsoup.parse(html);
+            String vod_play_url = "";
+            String vod_play_from = "magnet";
+            Elements aList = doc.select("table").get(0).select("a");
+            for (Element element : aList) {
+                if (!vod_play_url.equals("")) {
                     // 如果已经有一条磁力链接了，那么退出for循环
                     // 因为多条磁力链接，TVBox 似乎不会识别播放
                     break;
                 }
-                String href = aList.get(j).attr("href");
-                String[] split = href.split("&dn=");
-                String title = split[1];
-                if (!href.startsWith("magnet")) continue;
-                vod_play_url.append(title).append("$").append(href);
-                boolean notLastEpisode = j < aList.size() - 1; // 不是最后一集的标志
-                vod_play_url.append(notLastEpisode ? "#" : "$$$");
+                String episodeURL = element.attr("href");
+                String[] split = episodeURL.split("&dn=");
+                String episodeName = split[1];
+                if (!episodeURL.startsWith("magnet")) continue;
+                vod_play_url = episodeName + "$" + episodeURL;
             }
 
-            // 影片标题
-            String title = doc.select("h3").text();
-
-            // 图片
-            String pic = doc.select("#showinfo")
-                    .select("img")
-                    .attr("src");
-
-            // 影片名称、图片等赋值
-            JSONObject vod = new JSONObject()
+            String name = doc.select("h3").text();
+            String pic = doc.select("#showinfo img").attr("src");
+            JSONObject vodInfo = new JSONObject()
                     .put("vod_id", ids.get(0))
-                    .put("vod_name", title)
-                    .put("vod_pic", pic)
-                    .put("vod_play_from", vod_play_from)
-                    .put("vod_play_url", vod_play_url.toString());
+                    .put("vod_name", name)
+                    .put("vod_pic", pic);
+            if (vod_play_url.length() > 0) {
+                vodInfo.put("vod_play_from", vod_play_from)
+                        .put("vod_play_url", vod_play_url);
+            }
 
             JSONArray jsonArray = new JSONArray()
-                    .put(vod);
+                    .put(vodInfo);
             JSONObject result = new JSONObject()
                     .put("list", jsonArray);
             return result.toString();
@@ -211,16 +198,12 @@ public class BTPiaoHua extends Spider {
     @Override
     public String searchContent(String key, boolean quick) {
         try {
-            // https://www.xpiaohua.com/plus/search.php?q=我&searchtype.x=0&searchtype.y=0
-            // 需要 GBK 编码
-            String searchUrl = siteUrl + "/plus/search.php?q=" + URLEncoder.encode(key, "GBK") + "&searchtype.x=0&searchtype.y=0";
-            String pageSource = getWebContent(searchUrl);
-            Document searchPage = Jsoup.parse(pageSource);
-            JSONObject result = new JSONObject();
+            String searchURL = siteURL + "/plus/search.php?q=" + URLEncoder.encode(key, "GBK") + "&searchtype.x=0&searchtype.y=0";
+            String html = getWebContent(searchURL);
             JSONArray videos = new JSONArray();
-            Elements list = searchPage.select("#list").select("dl");
-            for (Element item : list) {
-                String vid = item.select("strong").select("a").attr("href");
+            Elements items = Jsoup.parse(html).select("#list dl");
+            for (Element item : items) {
+                String vid = item.select("strong a").attr("href");
                 String name = item.select("strong").text();
                 String pic = item.select("img").attr("src");
                 JSONObject vod = new JSONObject()
@@ -230,7 +213,8 @@ public class BTPiaoHua extends Spider {
                         .put("vod_remarks", "");
                 videos.put(vod);
             }
-            result.put("list", videos);
+            JSONObject result = new JSONObject()
+                    .put("list", videos);
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();

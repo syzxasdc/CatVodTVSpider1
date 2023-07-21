@@ -11,7 +11,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,17 +129,15 @@ public class SixV extends Spider {
             if (!pg.equals("1")) {
                 cateURL += "/index_" + pg + ".html";
             }
-            String content = getWebContent(cateURL, getHeader());
-            Elements divElements = Jsoup.parse(content)
-                    .select("#post_container")
-                    .select("[class=post_hover]");
+            String html = getWebContent(cateURL, getHeader());
+            Elements items = Jsoup.parse(html).select("#post_container .post_hover");
             JSONArray videos = new JSONArray();
-            for (Element div : divElements) {
-                Element li = div.select("[class=zoom]").get(0);
-                String vid = siteURL + li.attr("href");
+            for (Element item : items) {
+                Element li = item.select("[class=zoom]").get(0);
+                String vid = li.attr("href");
                 String name = li.attr("title");
                 String pic = li.select("img").attr("src");
-                String remark = div.select("[rel=category tag]").text();
+                String remark = item.select("[rel=category tag]").text();
 
                 JSONObject vod = new JSONObject()
                         .put("vod_id", vid)
@@ -159,7 +156,7 @@ public class SixV extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetURL, Map<String , String > header) throws Exception {
+    private String getWebContent(String targetURL, Map<String, String> header) throws Exception {
         Request.Builder builder = new Request.Builder();
         for (String key : header.keySet()) {
             String value = header.get(key);
@@ -184,13 +181,11 @@ public class SixV extends Spider {
     @Override
     public String detailContent(List<String> ids) {
         try {
-            String detailURL = ids.get(0);
-            String content = getWebContent(detailURL, getDetailHeader());
-            Document doc = Jsoup.parse(content);
+            String vid = ids.get(0);
+            String detailURL = siteURL + vid;
+            String html = getWebContent(detailURL, getDetailHeader());
+            Document doc = Jsoup.parse(html);
             Elements sourceList = doc.select("#post_content");
-            // 磁力链接只能选择一条，多了，TVBox就无法识别播放了。
-            // 另外磁力链接的播放，即使返回到首页，不在播放页面了，磁力依旧在后台继续下载
-            // 以上这些问题估计只能靠 TVBox 的作者去解决了。
 
             String vod_play_from = "magnet";
             String vod_play_url = "";
@@ -200,44 +195,30 @@ public class SixV extends Spider {
                     // 如果已经有一条磁力链接了，那么退出for循环
                     // 因为多条磁力链接，TVBox 似乎不会识别播放
                     if (!vod_play_url.equals("")) break;
-                    String href = a.attr("href");
-                    String text = a.text();
-                    if (!href.startsWith("magnet")) continue;
-                    vod_play_url = text + "$" + href;
+                    String episodeURL = a.attr("href");
+                    String episodeName = a.text();
+                    if (!episodeURL.startsWith("magnet")) continue;
+                    vod_play_url = episodeName + "$" + episodeURL;
                 }
             }
 
             String partHTML = doc.select(".context").html();
-            String title = doc.select(".article_container > h1").text();
-            String pic = doc.select("#post_content").select("img").attr("src");
+            String name = doc.select(".article_container > h1").text();
+            String pic = doc.select("#post_content img").attr("src");
             String typeName = getStrByRegex(Pattern.compile("◎类　　别　(.*?)<br>"), partHTML);
             String year = getStrByRegex(Pattern.compile("◎年　　代　(.*?)<br>"), partHTML);
             String area = getStrByRegex(Pattern.compile("◎产　　地　(.*?)<br>"), partHTML);
             String remark = getStrByRegex(Pattern.compile("◎上映日期　(.*?)<br>"), partHTML);
-            String actor = getStrByRegex(Pattern.compile("◎演　　员　(.*?)</p>"), partHTML)
-                    .replaceAll("<br>", "")
-                    .replaceAll("&nbsp;", "")
-                    .replaceAll("&amp;", "")
-                    .replaceAll("middot;", ".");
+            String actor = getActorOrDirector(Pattern.compile("◎演　　员　(.*?)</p>"), partHTML);
             if (actor.equals("")) {
-                actor = getStrByRegex(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML)
-                        .replaceAll("<br>", "")
-                        .replaceAll("&nbsp;", "")
-                        .replaceAll("&amp;", "")
-                        .replaceAll("middot;", ".");
+                actor = getActorOrDirector(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML);
             }
-            String director = getStrByRegex(Pattern.compile("◎导　　演　(.*?)<br>"), partHTML)
-                    .replaceAll("<br>", "")
-                    .replaceAll("&nbsp;", "")
-                    .replaceAll("&amp;", "")
-                    .replaceAll("middot;", ".");
-            String description = getStrByRegex(Pattern.compile("◎简　　介(.*?)<hr>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML)
-                    .replaceAll("</?[^>]+>", "")  // 去掉 html 标签
-                    .replaceAll("\n", ""); // 去掉换行符
+            String director = getActorOrDirector(Pattern.compile("◎导　　演　(.*?)<br>"), partHTML);
+            String description = getDescription(Pattern.compile("◎简　　介(.*?)<hr>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
 
             JSONObject vodInfo = new JSONObject()
                     .put("vod_id", ids.get(0))
-                    .put("vod_name", title)
+                    .put("vod_name", name)
                     .put("vod_pic", pic)
                     .put("type_name", typeName)
                     .put("vod_year", year)
@@ -274,6 +255,26 @@ public class SixV extends Spider {
         return "";
     }
 
+    private String getActorOrDirector(Pattern pattern, String str) {
+        return getStrByRegex(pattern, str)
+                .replaceAll("<br>", "")
+                .replaceAll("&nbsp;", "")
+                .replaceAll("&amp;", "")
+                .replaceAll("middot;", "・")
+                .replaceAll("　　　　　 ", ",");
+    }
+
+    private String getDescription(Pattern pattern, String str) {
+        return getStrByRegex(pattern, str)
+                .replaceAll("</?[^>]+>", "")  // 去掉 html 标签
+                .replaceAll("\n", "") // 去掉换行符
+                .replaceAll("　　　　", "")
+                .replaceAll("&amp;", "")
+                .replaceAll("middot;", "・")
+                .replaceAll("ldquo;", "【")
+                .replaceAll("rdquo;", "】");
+    }
+
     @Override
     public String searchContent(String key, boolean quick) {
         try {
@@ -289,7 +290,9 @@ public class SixV extends Spider {
                     .build();
             Request request = new Request.Builder()
                     .url(searchURL)
-                    .addHeader("user-agent", userAgent)
+                    .addHeader("User-Agent", userAgent)
+                    .addHeader("Origin", siteURL)
+                    .addHeader("Referer", siteURL + "/")
                     .post(formBody)
                     .build();
             OkHttpClient okHttpClient = new OkHttpClient()
@@ -299,13 +302,12 @@ public class SixV extends Spider {
                     .build();
             Response response = okHttpClient.newCall(request).execute();
             if (response.body() == null) return "";
-            String content = response.body().string();
+            String html = response.body().string();
             response.close(); // 关闭响应资源
-            Elements items = Jsoup.parse(content).select("#post_container")
-                    .select("[class=zoom]");
+            Elements items = Jsoup.parse(html).select("#post_container [class=zoom]");
             JSONArray videos = new JSONArray();
             for (Element item : items) {
-                String vid = siteURL + item.attr("href");
+                String vid = item.attr("href");
                 String name = item.attr("title").replaceAll("</?[^>]+>", "");
                 String pic = item.select("img").attr("src");
                 JSONObject vod = new JSONObject()
