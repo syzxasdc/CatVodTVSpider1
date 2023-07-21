@@ -1,5 +1,6 @@
 {
-  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;51c491b316e98cb63c235ea7dd6d0a88",
+  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;e5435343eb10277c49ade4a954243fd1",
+  
   "lives": [
     {
       "group": "redirect",
@@ -13,6 +14,7 @@
       ]
     }
   ],
+  
   "sites": [
     {"key": "Douban", "name": "豆瓣", "type": 3, "api": "csp_DoubanForTVBox", "searchable": 0},
     {"key": "SixV", "name": "6V电影网(磁力)", "type": 3, "api": "csp_SixV", "searchable": 1, "ext": "https://www.6vdy.org/"},
@@ -101,6 +103,7 @@
     },
     {"key": "push_agent", "name": "推送(播放页链接或磁力)", "type": 3, "api": "csp_PushAgent", "searchable": 0}
   ],
+  
   "parses": [
     {
       "name": "爱酷",
@@ -118,14 +121,11 @@
     {"name": "Json并发", "type": 2, "url": "Parallel"},
     {"name": "Json轮询", "type": 2, "url": "Sequence"}
   ],
+  
   "flags": ["youku", "qq", "QQ", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "PPTV", "mgtv", "wasu", "bilibili", "xmm", "xigua", "m1905"],
-  "rules":[
-    {"name":"量子广告","hosts":["vip.lz","hd.lz"],"regex":["#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.433333,[\\s\\S]*?#EXT-X-DISCONTINUITY","#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"]},
-    {"name":"非凡广告","hosts":["vip.ffzy"],"regex":["#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.666667,[\\s\\S]*?#EXT-X-DISCONTINUITY","#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"]},
-    {"name":"火山嗅探","host":["huoshan.com"],"regex":["item_id="]},
-    {"name":"抖音嗅探","host":["douyin.com"],"regex":["is_play_url="]}
-  ],
+  
   "wallpaper": "http://我不是.肥猫.love:63/pic/feimao.php",
+
   "ads": [
     "wan.51img1.com",
     "iqiyi.hbuioo.com",
