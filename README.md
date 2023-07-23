@@ -35,6 +35,12 @@
 
 ### 5.推荐的软件
 > 强烈推荐使用 FongMi 的影视，支持自动换源，非常强大，作者持续更新维护。其仓库地址：https://github.com/FongMi/TV
+> 
+> 如果需要播放磁力的话，可以使用俊版TVBox、takagen99版TVBox，安装包发布仓库：https://github.com/o0HalfLife0o/TVBoxOSC
+> 
+> 俊版仓库地址：https://github.com/q215613905/TVBoxOS
+> 
+>takagen99版仓库地址 https://github.com/takagen99/Box
 
 ### 6.关于直播(爬虫版)使用说明
 
@@ -56,6 +62,11 @@
   {
     "name": "txt直播名称2",
     "url": "http://def.txt&&&http://hij.png"  // 直播链接与自定义图片用 &&& 隔开 
+  },
+  {
+    "name": "txt直播名称3",
+    "url": "http://def.txt&&&http://hij.png",
+    "circuit": 1   // 分组后各个组里面的直播按照名称分线路
   },
   {
     "name": "m3u直播名称1",
