@@ -4,20 +4,14 @@ import android.content.Context;
 import android.text.TextUtils;
 import com.github.catvod.bean.Live;
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.net.SSLSocketFactoryCompat;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import com.github.catvod.net.OkHttp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.Collator;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author zhixc
@@ -28,6 +22,12 @@ public class Live2Vod extends Spider {
     private String myExtend;
 
     private final String userAgent = "okhttp/3.12.11";
+
+    private Map<String, String> getHeader() {
+        Map<String, String> header = new HashMap<>();
+        header.put("User-Agent", userAgent);
+        return header;
+    }
 
     @Override
     public void init(Context context, String extend) {
@@ -41,13 +41,13 @@ public class Live2Vod extends Spider {
             JSONArray classes = new JSONArray();
             // 如果是远程配置文件的话，尝试发起请求查询
             if (!myExtend.contains("$")) {
-                String html = getWebContent(myExtend);
-                JSONArray jsonArray = new JSONArray(html);
+                JSONArray jsonArray = new JSONArray(OkHttp.string(myExtend, getHeader()));
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject liveObj = jsonArray.getJSONObject(i);
                     String name = liveObj.optString("name");
                     String url = liveObj.optString("url");
                     String group = liveObj.optString("group");
+                    String circuit = liveObj.optString("circuit");
                     String diyPic = "";
                     if (url.contains("&&&")) {
                         String[] split = url.split("&&&");
@@ -57,7 +57,8 @@ public class Live2Vod extends Spider {
                     JSONObject typeIdObj = new JSONObject()
                             .put("url", url)
                             .put("pic", diyPic)
-                            .put("group", group);
+                            .put("group", group)
+                            .put("circuit", circuit);
                     JSONObject obj = new JSONObject()
                             .put("type_id", typeIdObj.toString())
                             .put("type_name", name);
@@ -98,23 +99,6 @@ public class Live2Vod extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetUrl) throws IOException {
-        Request request = new Request.Builder()
-                .url(targetUrl)
-                .get()
-                .addHeader("User-Agent", userAgent)
-                .build();
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                .build();
-        Response response = okHttpClient.newCall(request).execute();
-        if (response.body() == null) return "";
-        String content = response.body().string();
-        response.close();
-        return content;
-    }
-
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
@@ -123,13 +107,19 @@ public class Live2Vod extends Spider {
             String URL = typeIdObj.optString("url");
             String diyPic = typeIdObj.optString("pic");
             String group = typeIdObj.optString("group");
-            String content = getWebContent(URL);
+            String circuit = typeIdObj.optString("circuit");
+            String content = OkHttp.string(URL, getHeader());
             ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes());
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
             JSONArray videos = new JSONArray();
             if (content.contains("#genre#")) {
                 // 是 txt 格式的直播，调用 txt 直播处理方法
-                setTxtLive(bufferedReader, videos, diyPic);
+                if (circuit.equals("1")) {
+                    // 需要按照线路划分
+                    setTxtLiveCircuit(bufferedReader, videos, diyPic);
+                } else {
+                    setTxtLive(bufferedReader, videos, diyPic);
+                }
             }
             if (content.contains("#EXTM3U")) {
                 // 是 m3u 格式的直播，调用 m3u 直播处理方法
@@ -192,9 +182,9 @@ public class Live2Vod extends Spider {
                     }
                     // 再读取一行，就是对应的 url 链接了
                     String url = bufferedReader.readLine().trim();
-                    String sub = name + "$" + url;
+                    String vod_play_url = name + "$" + url;
                     JSONObject videoInfoObj = new JSONObject()
-                            .put("sub", sub)
+                            .put("vod_play_url", vod_play_url)
                             .put("pic", pic);
                     JSONObject vod = new JSONObject()
                             .put("vod_id", videoInfoObj.toString())
@@ -229,29 +219,36 @@ public class Live2Vod extends Spider {
                 }
             }
             // 文件流读取完毕后，进行分组
-            Map<String, List<Live>> collect = liveList.stream()
-                    .collect(Collectors.groupingBy(Live::getGroup, LinkedHashMap::new, Collectors.toList()));
+            // 分组重写，以支持安卓7以下设备
+            Map<String, List<Live>> collect = new LinkedHashMap<>();
+            for (Live live : liveList) {
+                String group = live.getGroup();
+                if (collect.containsKey(group)) {
+                    collect.get(group).add(live);
+                } else {
+                    List<Live> valueListToPut = new ArrayList<>();
+                    valueListToPut.add(live);
+                    collect.put(group, valueListToPut);
+                }
+            }
 
-            collect.forEach((group, lives) -> {
+            for (String group : collect.keySet()) {
+                List<Live> lives = collect.get(group);
                 List<String> vodItems = new ArrayList<>();
                 for (Live it : lives) {
                     vodItems.add(it.getName() + "$" + it.getUrl());
                 }
-                String sub = TextUtils.join("#", vodItems);
-                try {
-                    JSONObject videoInfoObj = new JSONObject()
-                            .put("sub", sub)
-                            .put("pic", diyPic);
-                    JSONObject vod = new JSONObject()
-                            .put("vod_id", videoInfoObj.toString())
-                            .put("vod_name", group)
-                            .put("vod_pic", diyPic)
-                            .put("vod_remarks", "");
-                    videos.put(vod);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+                String vod_play_url = TextUtils.join("#", vodItems);
+                JSONObject videoInfoObj = new JSONObject()
+                        .put("vod_play_url", vod_play_url)
+                        .put("pic", diyPic);
+                JSONObject vod = new JSONObject()
+                        .put("vod_id", videoInfoObj.toString())
+                        .put("vod_name", group)
+                        .put("vod_pic", diyPic)
+                        .put("vod_remarks", "");
+                videos.put(vod);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -272,8 +269,7 @@ public class Live2Vod extends Spider {
                     count++;
                     if (count > 1) {
                         // count 大于 1 时，可以将直播数据存储起来
-                        List<String> sortedItems = getSortedItems(vodItems);
-                        map.put(group, TextUtils.join("#", sortedItems));
+                        map.put(group, TextUtils.join("#", vodItems));
                         vodItems.clear(); // 重置 vodItems
                     }
                     group = line.substring(0, line.indexOf(","));
@@ -284,13 +280,12 @@ public class Live2Vod extends Spider {
             }
             // 将最后一次的数据存到 map 集合里面
             if (vodItems.size() > 0) {
-                List<String> sortedItems = getSortedItems(vodItems);
-                map.put(group, TextUtils.join("#", sortedItems));
+                map.put(group, TextUtils.join("#", vodItems));
             }
             for (String key : map.keySet()) {
-                String value = map.get(key);
+                String vod_play_url = map.get(key);
                 JSONObject videoInfoObj = new JSONObject()
-                        .put("sub", value)
+                        .put("vod_play_url", vod_play_url)
                         .put("pic", diyPic);
                 JSONObject vod = new JSONObject()
                         .put("vod_id", videoInfoObj.toString())
@@ -304,21 +299,101 @@ public class Live2Vod extends Spider {
         }
     }
 
-    private List<String> getSortedItems(List<String> vodItems) {
-        return vodItems.stream().sorted((o1, o2) -> {
-                    Collator collator = Collator.getInstance(Locale.CHINA);
-                    return collator.compare(o1, o2);
-                })
-                .collect(Collectors.toList());
+    // ######## 处理txt 格式的直播，分线路
+    private void setTxtLiveCircuit(BufferedReader bufferedReader, JSONArray videos, String diyPic) {
+        try {
+            ArrayList<Live> liveArrayList = new ArrayList<>();
+            String group = "";
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.equals("")) continue; // 空行不管，进入下一次循环
+                if (!line.contains(",")) continue;
+                if (line.contains(",#genre#")) {
+                    // 是直播分类
+                    group = line.substring(0, line.indexOf(","));
+                    continue;
+                }
+                // 到了这里 line 是一行直播链接代码
+                String[] split = line.split(",");
+                String name = split[0];
+                String url = split[1];
+                liveArrayList.add(new Live(name, url, group));
+            }
+
+            Map<String, List<Live>> collect = new LinkedHashMap<>();
+            for (Live live : liveArrayList) {
+                String groupName = live.getGroup();
+                if (collect.containsKey(groupName)) {
+                    collect.get(groupName).add(live);
+                } else {
+                    List<Live> valueListToPut = new ArrayList<>();
+                    valueListToPut.add(live);
+                    collect.put(groupName, valueListToPut);
+                }
+            }
+
+            for (String group2 : collect.keySet()) {
+                List<Live> lives = collect.get(group2);
+                Map<String, List<Live>> collect2 = new LinkedHashMap<>();
+                for (Live live : lives) {
+                    String name = live.getName();
+                    if (collect2.containsKey(name)) {
+                        collect2.get(name).add(live);
+                    } else {
+                        List<Live> valueListToPut = new ArrayList<>();
+                        valueListToPut.add(live);
+                        collect2.put(name, valueListToPut);
+                    }
+                }
+
+                int maxSize = 0;
+                for (List<Live> value : collect2.values()) {
+                    if (value.size() > maxSize) {
+                        maxSize = value.size();
+                    }
+                }
+                Map<String, String> play = new LinkedHashMap<>();
+                for (int i = 0; i < maxSize; i++) {
+                    ArrayList<String> vodItems = new ArrayList<>();
+                    for (String name : collect2.keySet()) {
+                        try {
+                            Live live = collect2.get(name).get(i);
+                            vodItems.add(name + "$" + live.getUrl());
+                        } catch (Exception e) {
+                            // e.printStackTrace();
+                        }
+                    }
+                    if (vodItems.size() > 0) {
+                        play.put("线路" + (i + 1), TextUtils.join("#", vodItems));
+                    }
+                }
+                String vod_play_url = TextUtils.join("$$$", play.values());
+                String vod_play_from = TextUtils.join("$$$", play.keySet());
+                JSONObject videoInfoObj = new JSONObject()
+                        .put("vod_play_url", vod_play_url)
+                        .put("vod_play_from", vod_play_from)
+                        .put("pic", diyPic);
+                JSONObject vod = new JSONObject()
+                        .put("vod_id", videoInfoObj.toString())
+                        .put("vod_name", group2)
+                        .put("vod_pic", diyPic)
+                        .put("vod_remarks", "");
+                videos.put(vod);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public String detailContent(List<String> ids) {
         try {
             JSONObject videoInfoObj = new JSONObject(ids.get(0));
-            String vod_play_url = videoInfoObj.getString("sub");
+            String vod_play_url = videoInfoObj.getString("vod_play_url");
             String pic = videoInfoObj.getString("pic");
             String vod_play_from = "选台";  // 线路 / 播放源标题
+            String vodPlayFrom = videoInfoObj.optString("vod_play_from");
+            if (!vodPlayFrom.equals("")) vod_play_from = vodPlayFrom;
 
             String description = "";
             String[] split = vod_play_url.split("\\$");
@@ -331,7 +406,7 @@ public class Live2Vod extends Spider {
                     .put("vod_id", ids.get(0))
                     .put("vod_name", name) // 影片名称
                     .put("vod_pic", pic) // 图片/影片封面
-                    .put("type_name", "电视直播")// 年份
+                    .put("type_name", "电视直播")// 类型
                     .put("vod_year", "") // 年份
                     .put("vod_area", "") // 地区
                     .put("vod_remarks", "") // 备注
@@ -358,7 +433,7 @@ public class Live2Vod extends Spider {
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) {
         try {
-            HashMap<String, String> header = new HashMap<>();
+            Map<String, String> header = new HashMap<>();
             header.put("User-Agent", userAgent);
             JSONObject result = new JSONObject()
                     .put("parse", 0) // 直播链接都是可以直接播放的，所以直连就行
