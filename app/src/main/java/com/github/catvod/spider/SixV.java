@@ -261,7 +261,7 @@ public class SixV extends Spider {
                 .replaceAll("&nbsp;", "")
                 .replaceAll("&amp;", "")
                 .replaceAll("middot;", "・")
-                .replaceAll("　　　　　 ", ",");
+                .replaceAll("　　　　　", ",");
     }
 
     private String getDescription(Pattern pattern, String str) {

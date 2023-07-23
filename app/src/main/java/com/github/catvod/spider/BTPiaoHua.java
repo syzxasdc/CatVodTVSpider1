@@ -1,6 +1,7 @@
 package com.github.catvod.spider;
 
 import com.github.catvod.crawler.Spider;
+import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.SSLSocketFactoryCompat;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -175,10 +178,24 @@ public class BTPiaoHua extends Spider {
 
             String name = doc.select("h3").text();
             String pic = doc.select("#showinfo img").attr("src");
+            String typeName = getStrByRegex(Pattern.compile("◎类　　别　(.*?)<br"), html);
+            String year = getStrByRegex(Pattern.compile("◎年　　代　(.*?)<br"), html);
+            String area = getStrByRegex(Pattern.compile("◎产　　地　(.*?)<br"), html);
+            String remark = getStrByRegex(Pattern.compile("◎上映日期　(.*?)<br"), html);
+            String actor = getActorStr(html);
+            String director = getDirectorStr(Pattern.compile("◎导　　演　(.*?)<br"), html);
+            String description = getDescription(Pattern.compile("◎简　　介(.*?)◎", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), html);
             JSONObject vodInfo = new JSONObject()
                     .put("vod_id", ids.get(0))
                     .put("vod_name", name)
-                    .put("vod_pic", pic);
+                    .put("vod_pic", pic)
+                    .put("type_name", typeName)
+                    .put("vod_year", year)
+                    .put("vod_area", area)
+                    .put("vod_remarks", remark)
+                    .put("vod_actor", actor)
+                    .put("vod_director", director)
+                    .put("vod_content", description);
             if (vod_play_url.length() > 0) {
                 vodInfo.put("vod_play_from", vod_play_from)
                         .put("vod_play_url", vod_play_url);
@@ -191,6 +208,34 @@ public class BTPiaoHua extends Spider {
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return "";
+    }
+
+    private String getDescription(Pattern pattern, String html) {
+        return getStrByRegex(pattern, html).replaceAll("</?[^>]+>", "");
+    }
+
+    private String getDirectorStr(Pattern pattern, String html) {
+        return getStrByRegex(pattern, html)
+                .replaceAll("&middot;", "·");
+    }
+
+    private String getActorStr(String html) {
+        Pattern p1 = Pattern.compile("◎演　　员　(.*?)◎");
+        Pattern p2 = Pattern.compile("◎主　　演　(.*?)◎");
+        String actor =  getStrByRegex(p1, html).equals("") ? getStrByRegex(p2, html) : "";
+        return actor.replaceAll("</?[^>]+>", "")
+                .replaceAll("　　　　　", "")
+                .replaceAll("&middot;", "·");
+    }
+
+    private String getStrByRegex(Pattern pattern, String html){
+        try {
+            Matcher matcher = pattern.matcher(html);
+            if (matcher.find()) return matcher.group(1);
+        } catch (Exception e) {
+            SpiderDebug.log(e);
         }
         return "";
     }
