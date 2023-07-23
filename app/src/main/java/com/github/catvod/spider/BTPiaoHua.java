@@ -2,10 +2,7 @@ package com.github.catvod.spider;
 
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
-import com.github.catvod.net.SSLSocketFactoryCompat;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import com.github.catvod.net.OkHttp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -13,10 +10,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +27,12 @@ public class BTPiaoHua extends Spider {
     private final String siteURL = "https://www.xpiaohua.com";
 
     private final String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
+    
+    private Map<String, String> getHeader() {
+        Map<String, String> header = new HashMap<>();
+        header.put("User-Agent", userAgent);
+        return header;
+    }
 
     @Override
     public String homeContent(boolean filter) {
@@ -111,7 +114,7 @@ public class BTPiaoHua extends Spider {
             if (!pg.equals("1")) {
                 cateURL += "/list_" + pg + ".html";
             }
-            String html = getWebContent(cateURL);
+            String html = OkHttp.string(cateURL, getHeader());
             JSONArray videos = new JSONArray();
             Elements items = Jsoup.parse(html).select("#list dl");
             for (Element item : items) {
@@ -136,29 +139,11 @@ public class BTPiaoHua extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetURL) throws IOException {
-        Request request = new Request.Builder()
-                .addHeader("User-Agent", userAgent)
-                .get()
-                .url(targetURL)
-                .build();
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                .hostnameVerifier((hostname, session) -> true)
-                .build();
-        Response response = okHttpClient.newCall(request).execute();
-        if (response.body() == null) return "";
-        byte[] bytes = response.body().bytes();
-        response.close();
-        return new String(bytes, "gb2312");
-    }
-
     @Override
     public String detailContent(List<String> ids) {
         try {
             String detailURL = ids.get(0);
-            String html = getWebContent(detailURL);
+            String html = OkHttp.string(detailURL, getHeader());
             Document doc = Jsoup.parse(html);
             String vod_play_url = "";
             String vod_play_from = "magnet";
@@ -244,7 +229,7 @@ public class BTPiaoHua extends Spider {
     public String searchContent(String key, boolean quick) {
         try {
             String searchURL = siteURL + "/plus/search.php?q=" + URLEncoder.encode(key, "GBK") + "&searchtype.x=0&searchtype.y=0";
-            String html = getWebContent(searchURL);
+            String html = OkHttp.string(searchURL, getHeader());
             JSONArray videos = new JSONArray();
             Elements items = Jsoup.parse(html).select("#list dl");
             for (Element item : items) {

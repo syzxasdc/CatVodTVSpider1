@@ -2,6 +2,7 @@ package com.github.catvod.spider;
 
 import android.content.Context;
 import com.github.catvod.crawler.Spider;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.SSLSocketFactoryCompat;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -129,7 +130,7 @@ public class SixV extends Spider {
             if (!pg.equals("1")) {
                 cateURL += "/index_" + pg + ".html";
             }
-            String html = getWebContent(cateURL, getHeader());
+            String html = OkHttp.string(cateURL, getHeader());
             Elements items = Jsoup.parse(html).select("#post_container .post_hover");
             JSONArray videos = new JSONArray();
             for (Element item : items) {
@@ -156,34 +157,12 @@ public class SixV extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetURL, Map<String, String> header) throws Exception {
-        Request.Builder builder = new Request.Builder();
-        for (String key : header.keySet()) {
-            String value = header.get(key);
-            builder.addHeader(key, value);
-        }
-        Request request = builder
-                .url(targetURL)
-                .get()
-                .build();
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                .hostnameVerifier((hostname, session) -> true)
-                .build();
-        Response response = okHttpClient.newCall(request).execute();
-        if (response.body() == null) return "";
-        String content = response.body().string();
-        response.close();
-        return content;
-    }
-
     @Override
     public String detailContent(List<String> ids) {
         try {
             String vid = ids.get(0);
             String detailURL = siteURL + vid;
-            String html = getWebContent(detailURL, getDetailHeader());
+            String html = OkHttp.string(detailURL, getDetailHeader());
             Document doc = Jsoup.parse(html);
             Elements sourceList = doc.select("#post_content");
 
@@ -295,11 +274,7 @@ public class SixV extends Spider {
                     .addHeader("Referer", siteURL + "/")
                     .post(formBody)
                     .build();
-            OkHttpClient okHttpClient = new OkHttpClient()
-                    .newBuilder()
-                    .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                    .hostnameVerifier((hostname, session) -> true)
-                    .build();
+            OkHttpClient okHttpClient = OkHttp.client();
             Response response = okHttpClient.newCall(request).execute();
             if (response.body() == null) return "";
             String html = response.body().string();

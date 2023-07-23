@@ -1,10 +1,7 @@
 package com.github.catvod.spider;
 
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.net.SSLSocketFactoryCompat;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import com.github.catvod.net.OkHttp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -13,10 +10,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhixc
@@ -26,6 +23,12 @@ public class NongMing extends Spider {
 
     private final String siteUrl = "https://www.nmddd.com";
     private final String userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1";
+
+    private Map<String, String> getHeader() {
+        Map<String, String> header = new HashMap<>();
+        header.put("User-Agent", userAgent);
+        return header;
+    }
 
     @Override
     public String homeContent(boolean filter) {
@@ -80,7 +83,7 @@ public class NongMing extends Spider {
 //            String lang = ext.get("lang") == null ? "" : ext.get("lang");
 
             String cateUrl = siteUrl + String.format("/vod-list-id-%s-pg-%s-order--by-%s-class-0-year-%s-letter--area-%s-lang-.html", classType, pg, by, year, area);
-            String content = getWebContent(cateUrl);
+            String content = OkHttp.string(cateUrl, getHeader());
             JSONArray videos = new JSONArray();
             Elements lis = Jsoup.parse(content)
                     .select("[class=globalPicList]")
@@ -113,28 +116,11 @@ public class NongMing extends Spider {
         return "";
     }
 
-    private String getWebContent(String targetUrl) throws IOException {
-        Request request = new Request.Builder()
-                .url(targetUrl)
-                .get()
-                .addHeader("User-Agent", userAgent)
-                .build();
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                .build();
-        Response response = okHttpClient.newCall(request).execute();
-        if (response.body() == null) return "";
-        String content = response.body().string();
-        response.close();
-        return content;
-    }
-
     @Override
     public String detailContent(List<String> ids) {
         try {
             String detailUrl = ids.get(0);
-            Document detailPage = Jsoup.parse(getWebContent(detailUrl));
+            Document detailPage = Jsoup.parse(OkHttp.string(detailUrl, getHeader()));
             Elements sourceList = detailPage.select("[class=numList]");
             StringBuilder vod_play_url = new StringBuilder(); // 线路/播放源 里面的各集的播放页面链接
             StringBuilder vod_play_from = new StringBuilder();  // 线路 / 播放源标题
@@ -212,7 +198,7 @@ public class NongMing extends Spider {
         try {
             String searchUrl = siteUrl + "/index.php?m=vod-search&wd=" + URLEncoder.encode(key);
             JSONArray videos = new JSONArray();
-            Elements lis = Jsoup.parse(getWebContent(searchUrl)).select("[id=data_list]")
+            Elements lis = Jsoup.parse(OkHttp.string(searchUrl, getHeader())).select("[id=data_list]")
                     .select("li");
             for (Element li : lis) {
                 Element a = li.select(".pic").select("a").get(0);

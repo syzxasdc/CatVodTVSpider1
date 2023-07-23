@@ -1,10 +1,7 @@
 package com.github.catvod.spider;
 
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.net.SSLSocketFactoryCompat;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import com.github.catvod.net.OkHttp;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -124,7 +121,7 @@ public class Douban extends Spider {
                 default: // 电影筛选
                     cateURL = hostURL + "/movie/recommend" + "?apikey=" + apikey + "&sort=" + sort + "&tags=" + tags + "&start=" + start + "&count=20";
             }
-            String jsonStr = getWebContent(cateURL, getHeader());
+            String jsonStr = OkHttp.string(cateURL, getHeader());
             JSONObject jsonObject = new JSONObject(jsonStr);
             JSONArray items = jsonObject.getJSONArray(itemKey);
             JSONArray videos = new JSONArray();
@@ -150,27 +147,6 @@ public class Douban extends Spider {
             e.printStackTrace();
         }
         return "";
-    }
-
-    private String getWebContent(String targetURL, Map<String, String> header) throws Exception {
-        Request.Builder builder = new Request.Builder()
-                .url(targetURL)
-                .get();
-        for (String key : header.keySet()) {
-            String value = header.get(key);
-            builder.addHeader(key, value);
-        }
-        Request request = builder.build();
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                .hostnameVerifier((hostname, session) -> true)
-                .build();
-        Response response = okHttpClient.newCall(request).execute();
-        if (response.body() == null) return "";
-        String str = response.body().string();
-        response.close();
-        return str;
     }
 
     private String getRating(JSONObject item) {

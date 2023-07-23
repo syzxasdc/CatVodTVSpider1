@@ -3,12 +3,8 @@ package com.github.catvod.spider;
 import android.content.Context;
 import android.text.TextUtils;
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.net.SSLSocketFactoryCompat;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Misc;
-import com.github.catvod.utils.okhttp.OkHttpUtil;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,13 +33,20 @@ public class AppYsV2 extends Spider {
         }
     }
 
+    private Map<String, String> getHeader(String url) {
+        String userAgent = getUserAgent(url);
+        Map<String, String> header = new HashMap<>();
+        header.put("User-Agent", userAgent);
+        return header;
+    }
+
     @Override
     public String homeContent(boolean filter) {
         try {
             String url = getCateUrl(getApiUrl());
             JSONArray jsonArray = null;
             if (!url.isEmpty()) {
-                String json = desc(getWebContent(url), (byte) 0);
+                String json = desc(OkHttp.string(url, getHeader(url)), (byte) 0);
                 JSONObject obj = new JSONObject(json);
                 if (obj.has("list") && obj.get("list") instanceof JSONArray) {
                     jsonArray = obj.getJSONArray("list");
@@ -142,31 +145,6 @@ public class AppYsV2 extends Spider {
         return "";
     }
 
-
-    private String getWebContent(String targetUrl) {
-        try {
-            String userAgent = getUserAgent(targetUrl);
-            Request request = new Request.Builder()
-                    .url(targetUrl)
-                    .get()
-                    .addHeader("User-Agent", userAgent)
-                    .build();
-            OkHttpClient okHttpClient = new OkHttpClient()
-                    .newBuilder()
-                    .sslSocketFactory(new SSLSocketFactoryCompat(), SSLSocketFactoryCompat.trustAllCert)
-                    .build();
-            Response response = okHttpClient.newCall(request).execute();
-            if (response.body() == null) return "";
-            String content = response.body().string();
-            response.close();
-            return content;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-
     @Override
     public String homeVideoContent() {
         try {
@@ -177,7 +155,7 @@ public class AppYsV2 extends Spider {
                 url = getCateFilterUrlPrefix(apiUrl) + "movie&page=1&area=&type=&start=";
                 isTV = true;
             }
-            String json = desc(getWebContent(url), (byte) 1);
+            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 1);
             JSONObject obj = new JSONObject(json);
             JSONArray videos = new JSONArray();
             if (isTV) {
@@ -234,7 +212,7 @@ public class AppYsV2 extends Spider {
             url = url.replace("筛选lang", (extend != null && extend.containsKey("lang")) ? extend.get("lang") : "");
             url = url.replace("筛选year", (extend != null && extend.containsKey("year")) ? extend.get("year") : "");
             url = url.replace("排序", (extend != null && extend.containsKey("排序")) ? extend.get("排序") : "");
-            String json = desc(getWebContent(url), (byte) 2);
+            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 2);
             JSONObject obj = new JSONObject(json);
             int totalPg = Integer.MAX_VALUE;
             try {
@@ -310,7 +288,7 @@ public class AppYsV2 extends Spider {
         try {
             String apiUrl = getApiUrl();
             String url = getPlayUrlPrefix(apiUrl) + ids.get(0);
-            String json = desc(getWebContent(url), (byte) 3);
+            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 3);
             JSONObject obj = new JSONObject(json);
             JSONObject result = new JSONObject();
             JSONObject vod = new JSONObject();
@@ -330,7 +308,7 @@ public class AppYsV2 extends Spider {
         try {
             String apiUrl = getApiUrl();
             String url = getSearchUrl(apiUrl, URLEncoder.encode(key));
-            String json = desc(getWebContent(url), (byte) 5);
+            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 5);
             JSONObject obj = new JSONObject(json);
             JSONArray jsonArray = null;
             JSONArray videos = new JSONArray();
@@ -802,11 +780,11 @@ public class AppYsV2 extends Spider {
             if (parseUrl.isEmpty() || parseUrl.equals("null"))
                 continue;
             String playUrl = parseUrl + url;
-            String content = desc(OkHttpUtil.string(playUrl, null), (byte) 4);
+            String content = desc(OkHttp.string(playUrl, null), (byte) 4);
             if (parseUrl.contains("49.233.47.42:9898")) {
                 HashMap hashMap = new HashMap();
-                OkHttpUtil.stringNoRedirect(playUrl, null, hashMap);
-                String d = OkHttpUtil.getRedirectLocation(hashMap);
+                OkHttp.stringNoRedirect(playUrl, null, hashMap);
+                String d = OkHttp.getRedirectLocation(hashMap);
                 JSONObject result = new JSONObject();
                 result.put("parse", 0);
                 result.put("playUrl", "");
