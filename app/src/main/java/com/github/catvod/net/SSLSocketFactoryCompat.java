@@ -19,6 +19,7 @@ import javax.net.ssl.X509TrustManager;
 
 /**
  * @author FongMi
+ * <a href="https://github.com/FongMi/CatVodSpider">CatVodSpider</a>
  */
 public class SSLSocketFactoryCompat extends SSLSocketFactory {
 
