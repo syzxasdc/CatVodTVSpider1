@@ -2,9 +2,9 @@
 
 ### 1.基于这些开源的项目。
 >  [CatVodTVSpider项目](https://github.com/CatVodTVOfficial/CatVodTVSpider)
-、 [TvJar-1项目](https://github.com/q215613905/TvJar-1)、[tvjar_test](https://github.com/asters1/tvjar_test)
+、 [TvJar-1项目](https://github.com/q215613905/TvJar-1)、[tvjar_test](https://github.com/asters1/tvjar_test)、[CatVodSpider](https://github.com/FongMi/CatVodSpider)
 
-- 在此感谢这些开源项目，感谢 CatVodTVOfficial、q215613905、asters1
+- 在此感谢这些开源项目，感谢 CatVodTVOfficial、q215613905、asters1、FongMi
 
 - 初次接触的话建议查看原来的 [README.md](./README(原).md)，里面有关于一些参数说明。
 
@@ -84,5 +84,5 @@
 ]
 ```
 - m3u 格式的文件，里面一般带有图片，如果在json配置文件里面写了图片链接，那么就以json配置文件的为主。
-- 一些直播源来自：youshandefeiyang 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、Ftindy 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、范明明的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 youshandefeiyang、Ftindy、范明明的分享。
+- 一些直播源来自：Yoursmile7 的 [TVBox](https://agit.ai/Yoursmile7/TVBox)、youshandefeiyang 的 [live-Url](https://github.com/youshandefeiyang/live-Url) 、Ftindy 的 [IPTV-URL](https://github.com/Ftindy/IPTV-URL)、范明明的 [live](https://github.com/fanmingming/live) 等项目，非常感谢 Yoursmile7、 youshandefeiyang、Ftindy、范明明的分享。
 
