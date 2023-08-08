@@ -1,7 +1,7 @@
 package com.github.catvod.spider;
 
+import android.text.TextUtils;
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -14,8 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +23,7 @@ import java.util.regex.Pattern;
  * @author zhixc
  * 新飘花电影网
  */
-public class BTPiaoHua extends Spider {
+public class PiaoHua extends Spider {
 
     private final String siteURL = "https://www.xpiaohua.com";
 
@@ -33,63 +32,15 @@ public class BTPiaoHua extends Spider {
     @Override
     public String homeContent(boolean filter) {
         try {
-            JSONObject actionMovie = new JSONObject()
-                    .put("type_id", "/dongzuo/")
-                    .put("type_name", "动作片");
-
-            JSONObject comedy = new JSONObject()
-                    .put("type_id", "/xiju/")
-                    .put("type_name", "喜剧片");
-
-            JSONObject romanticMovie = new JSONObject()
-                    .put("type_id", "/aiqing/")
-                    .put("type_name", "爱情片");
-
-            JSONObject scientificMovie = new JSONObject()
-                    .put("type_id", "/kehuan/")
-                    .put("type_name", "科幻片");
-
-            JSONObject featureMovie = new JSONObject()
-                    .put("type_id", "/juqing/")
-                    .put("type_name", "剧情片");
-
-            JSONObject suspenseMovie = new JSONObject()
-                    .put("type_id", "/xuanyi/")
-                    .put("type_name", "悬疑片");
-
-            JSONObject warMovie = new JSONObject()
-                    .put("type_id", "/zhanzheng/")
-                    .put("type_name", "战争片");
-
-            JSONObject horrorMovie = new JSONObject()
-                    .put("type_id", "/kongbu/")
-                    .put("type_name", "恐怖片");
-
-            JSONObject disasterMovie = new JSONObject()
-                    .put("type_id", "/zainan/")
-                    .put("type_name", "灾难片");
-
-            JSONObject anime = new JSONObject()
-                    .put("type_id", "/dongman/")
-                    .put("type_name", "动漫");
-
-            JSONObject documentary = new JSONObject()
-                    .put("type_id", "/jilu/")
-                    .put("type_name", "纪录片");
-
-            JSONArray classes = new JSONArray()
-                    .put(actionMovie)
-                    .put(comedy)
-                    .put(romanticMovie)
-                    .put(scientificMovie)
-                    .put(featureMovie)
-                    .put(suspenseMovie)
-                    .put(warMovie)
-                    .put(horrorMovie)
-                    .put(disasterMovie)
-                    .put(anime)
-                    .put(documentary);
-
+            JSONArray classes = new JSONArray();
+            List<String> typeIds = Arrays.asList("/dongzuo/", "/xiju/", "/aiqing/", "/kehuan/", "/juqing/", "/xuanyi/", "/zhanzheng/", "/kongbu/", "/zainan/", "/dongman/", "/jilu/");
+            List<String> typeNames = Arrays.asList("动作片", "喜剧片", "爱情片", "科幻片", "剧情片", "悬疑片", "战争片", "恐怖片", "灾难片", "动漫", "纪录片");
+            for (int i = 0; i < typeIds.size(); i++) {
+                JSONObject obj = new JSONObject();
+                obj.put("type_id", typeIds.get(i));
+                obj.put("type_name", typeNames.get(i));
+                classes.put(obj);
+            }
             JSONObject result = new JSONObject()
                     .put("class", classes);
             return result.toString();
@@ -158,17 +109,15 @@ public class BTPiaoHua extends Spider {
             String vod_play_url = "";
             String vod_play_from = "magnet";
             Elements aList = doc.select("table").get(0).select("a");
+            List<String> vodItems = new ArrayList<>();
             for (Element element : aList) {
-                if (!vod_play_url.equals("")) {
-                    // 如果已经有一条磁力链接了，那么退出for循环
-                    // 因为多条磁力链接，TVBox 似乎不会识别播放
-                    break;
-                }
                 String episodeURL = element.attr("href");
-                String[] split = episodeURL.split("&dn=");
-                String episodeName = split[1];
                 if (!episodeURL.startsWith("magnet")) continue;
-                vod_play_url = episodeName + "$" + episodeURL;
+                String episodeName = getEpisodeName(episodeURL);
+                vodItems.add(episodeName + "$" + episodeURL);
+            }
+            if (vodItems.size() > 0) {
+                vod_play_url = TextUtils.join("#", vodItems);
             }
 
             String name = doc.select("h3").text();
@@ -180,7 +129,7 @@ public class BTPiaoHua extends Spider {
             String actor = getActorStr(html);
             String director = getDirectorStr(Pattern.compile("◎导　　演　(.*?)<br"), html);
             String description = getDescription(Pattern.compile("◎简　　介(.*?)◎", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), html);
-            JSONObject vodInfo = new JSONObject()
+            JSONObject vod = new JSONObject()
                     .put("vod_id", ids.get(0))
                     .put("vod_name", name)
                     .put("vod_pic", pic)
@@ -192,12 +141,11 @@ public class BTPiaoHua extends Spider {
                     .put("vod_director", director)
                     .put("vod_content", description);
             if (vod_play_url.length() > 0) {
-                vodInfo.put("vod_play_from", vod_play_from)
-                        .put("vod_play_url", vod_play_url);
+                vod.put("vod_play_from", vod_play_from);
+                vod.put("vod_play_url", vod_play_url);
             }
 
-            JSONArray jsonArray = new JSONArray()
-                    .put(vodInfo);
+            JSONArray jsonArray = new JSONArray().put(vod);
             JSONObject result = new JSONObject()
                     .put("list", jsonArray);
             return result.toString();
@@ -205,6 +153,15 @@ public class BTPiaoHua extends Spider {
             e.printStackTrace();
         }
         return "";
+    }
+
+    private static String getEpisodeName(String episodeURL) {
+        try {
+            return episodeURL.split("&dn=")[1];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "第1集";
     }
 
     private String getDescription(Pattern pattern, String html) {
@@ -219,18 +176,18 @@ public class BTPiaoHua extends Spider {
     private String getActorStr(String html) {
         Pattern p1 = Pattern.compile("◎演　　员　(.*?)◎");
         Pattern p2 = Pattern.compile("◎主　　演　(.*?)◎");
-        String actor =  getStrByRegex(p1, html).equals("") ? getStrByRegex(p2, html) : "";
+        String actor = getStrByRegex(p1, html).equals("") ? getStrByRegex(p2, html) : "";
         return actor.replaceAll("</?[^>]+>", "")
                 .replaceAll("　　　　　", "")
                 .replaceAll("&middot;", "·");
     }
 
-    private String getStrByRegex(Pattern pattern, String html){
+    private String getStrByRegex(Pattern pattern, String html) {
         try {
             Matcher matcher = pattern.matcher(html);
             if (matcher.find()) return matcher.group(1);
         } catch (Exception e) {
-            SpiderDebug.log(e);
+            e.printStackTrace();
         }
         return "";
     }
