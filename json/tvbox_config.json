@@ -1,5 +1,5 @@
 {
-  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;e1e363806921f5eac33c259554a0803a",
+  "spider": "https://gh.api.99988866.xyz/https://raw.githubusercontent.com/zhixc/CatVodTVSpider/main/jar/custom_spider.jar;md5;0fcc4bc50c48082bc0f9bdbd2e337ad3",
   
   "lives": [
     {
@@ -18,7 +18,7 @@
   "sites": [
     {"key": "Douban", "name": "豆瓣", "type": 3, "api": "csp_DoubanForTVBox", "searchable": 0},
     {"key": "SixV", "name": "6V电影网(磁力)", "type": 3, "api": "csp_SixV", "searchable": 1, "ext": "https://www.6vdy.org/"},
-    {"key": "PiaoHua", "name": "新飘花电影网(磁力)", "type": 3, "api": "csp_BTPiaoHua", "searchable": 1},
+    {"key": "PiaoHua", "name": "新飘花电影网(磁力)", "type": 3, "api": "csp_PiaoHua", "searchable": 1},
     {"key": "本地", "name": "本地文件", "type": 3, "api": "csp_LocalFileV2", "searchable": 0},
     {"key": "本地2", "name": "本地文件(不显示隐藏文件)", "type": 3, "api": "csp_LocalFileV2", "searchable": 0, "ext": "showAllFile=false"},
     {"key": "厂长", "name": "厂长", "type": 3, "api": "csp_Czsapp", "searchable": 1, "playerType": 2},
