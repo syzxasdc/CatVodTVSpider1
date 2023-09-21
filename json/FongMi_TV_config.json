@@ -30,7 +30,6 @@
     {"key": "Douban", "name": "豆瓣", "type": 3, "api": "csp_Douban", "searchable": 0},
     {"key": "本地", "name": "本地文件", "type": 3, "api": "csp_LocalFileV2", "searchable": 0},
     {"key": "本地2", "name": "本地文件(不显示隐藏文件)", "type": 3, "api": "csp_LocalFileV2", "searchable": 0, "ext": "showAllFile=false"},
-    {"key": "厂长", "name": "厂长", "type": 3, "api": "csp_Czsapp", "searchable": 1, "playerType": 2},
     {"key": "Anime1", "name": "动漫", "type": 3, "api": "csp_Anime1", "searchable": 1},
     {"key": "NongMing", "name": "农民影视", "type": 3, "api": "csp_NongMing", "searchable": 1},
     {"key": "Voflix", "name": "Voflix", "type": 3, "api": "csp_Voflix", "searchable": 1, "ext": "https://www.voflix.me/"},
