@@ -30,61 +30,34 @@ public class Live2Vod extends Spider {
     }
 
     @Override
-    public void init(Context context, String extend) {
+    public void init(Context context, String extend) throws Exception {
         super.init(context, extend);
         myExtend = extend;
     }
 
     @Override
-    public String homeContent(boolean filter) {
-        try {
-            JSONArray classes = new JSONArray();
-            // 如果是远程配置文件的话，尝试发起请求查询
-            if (!myExtend.contains("$")) {
-                JSONArray jsonArray = new JSONArray(OkHttp.string(myExtend, getHeader()));
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject liveObj = jsonArray.getJSONObject(i);
-                    String name = liveObj.optString("name");
-                    String url = liveObj.optString("url");
-                    String group = liveObj.optString("group");
-                    String circuit = liveObj.optString("circuit");
-                    String diyPic = "";
-                    if (url.contains("&&&")) {
-                        String[] split = url.split("&&&");
-                        url = split[0];
-                        diyPic = split.length > 1 ? split[1] : "";
-                    }
-                    JSONObject typeIdObj = new JSONObject()
-                            .put("url", url)
-                            .put("pic", diyPic)
-                            .put("group", group)
-                            .put("circuit", circuit);
-                    JSONObject obj = new JSONObject()
-                            .put("type_id", typeIdObj.toString())
-                            .put("type_name", name);
-                    classes.put(obj);
+    public String homeContent(boolean filter) throws Exception {
+        JSONArray classes = new JSONArray();
+        // 如果是远程配置文件的话，尝试发起请求查询
+        if (!myExtend.contains("$")) {
+            JSONArray jsonArray = new JSONArray(OkHttp.string(myExtend, getHeader()));
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject liveObj = jsonArray.getJSONObject(i);
+                String name = liveObj.optString("name");
+                String url = liveObj.optString("url");
+                String group = liveObj.optString("group");
+                String circuit = liveObj.optString("circuit");
+                String diyPic = "";
+                if (url.contains("&&&")) {
+                    String[] split = url.split("&&&");
+                    url = split[0];
+                    diyPic = split.length > 1 ? split[1] : "";
                 }
-                JSONObject result = new JSONObject()
-                        .put("class", classes);
-                return result.toString();
-            }
-
-            String sub = myExtend;
-            String diyPic = "";
-            if (myExtend.contains("&&&")) {
-                String[] split = myExtend.split("&&&");
-                sub = split[0];
-                diyPic = split.length > 1 ? split[1] : "";
-            }
-            String[] split = sub.split("#");
-            for (String s : split) {
-                String[] split2 = s.split("\\$");
-                String name = split2[0];
-                String url = split2[1];
-                String pic = url.contains(".txt") ? diyPic : "";
                 JSONObject typeIdObj = new JSONObject()
                         .put("url", url)
-                        .put("pic", pic);
+                        .put("pic", diyPic)
+                        .put("group", group)
+                        .put("circuit", circuit);
                 JSONObject obj = new JSONObject()
                         .put("type_id", typeIdObj.toString())
                         .put("type_name", name);
@@ -93,53 +66,70 @@ public class Live2Vod extends Spider {
             JSONObject result = new JSONObject()
                     .put("class", classes);
             return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+
+        String sub = myExtend;
+        String diyPic = "";
+        if (myExtend.contains("&&&")) {
+            String[] split = myExtend.split("&&&");
+            sub = split[0];
+            diyPic = split.length > 1 ? split[1] : "";
+        }
+        String[] split = sub.split("#");
+        for (String s : split) {
+            String[] split2 = s.split("\\$");
+            String name = split2[0];
+            String url = split2[1];
+            String pic = url.contains(".txt") ? diyPic : "";
+            JSONObject typeIdObj = new JSONObject()
+                    .put("url", url)
+                    .put("pic", pic);
+            JSONObject obj = new JSONObject()
+                    .put("type_id", typeIdObj.toString())
+                    .put("type_name", name);
+            classes.put(obj);
+        }
+        JSONObject result = new JSONObject()
+                .put("class", classes);
+        return result.toString();
     }
 
     @Override
-    public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
-        try {
-            if (!pg.equals("1")) return "";
-            JSONObject typeIdObj = new JSONObject(tid);
-            String URL = typeIdObj.optString("url");
-            String diyPic = typeIdObj.optString("pic");
-            String group = typeIdObj.optString("group");
-            String circuit = typeIdObj.optString("circuit");
-            String content = OkHttp.string(URL, getHeader());
-            ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes());
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-            JSONArray videos = new JSONArray();
-            if (content.contains("#genre#")) {
-                // 是 txt 格式的直播，调用 txt 直播处理方法
-                if (circuit.equals("1")) {
-                    // 需要按照线路划分
-                    setTxtLiveCircuit(bufferedReader, videos, diyPic);
-                } else {
-                    setTxtLive(bufferedReader, videos, diyPic);
-                }
+    public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) throws Exception {
+        if (!pg.equals("1")) return "";
+        JSONObject typeIdObj = new JSONObject(tid);
+        String URL = typeIdObj.optString("url");
+        String diyPic = typeIdObj.optString("pic");
+        String group = typeIdObj.optString("group");
+        String circuit = typeIdObj.optString("circuit");
+        String content = OkHttp.string(URL, getHeader());
+        ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes());
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+        JSONArray videos = new JSONArray();
+        if (content.contains("#genre#")) {
+            // 是 txt 格式的直播，调用 txt 直播处理方法
+            if (circuit.equals("1")) {
+                // 需要按照线路划分
+                setTxtLiveCircuit(bufferedReader, videos, diyPic);
+            } else {
+                setTxtLive(bufferedReader, videos, diyPic);
             }
-            if (content.contains("#EXTM3U")) {
-                // 是 m3u 格式的直播，调用 m3u 直播处理方法
-                if (group.equals("1")) {
-                    setM3ULiveGroup(bufferedReader, videos, diyPic); // 要分组
-                } else {
-                    setM3ULive(bufferedReader, videos, diyPic);
-                }
-            }
-            // 倒序关闭流
-            bufferedReader.close();
-            is.close();
-            JSONObject result = new JSONObject()
-                    .put("pagecount", 1)
-                    .put("list", videos);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+        if (content.contains("#EXTM3U")) {
+            // 是 m3u 格式的直播，调用 m3u 直播处理方法
+            if (group.equals("1")) {
+                setM3ULiveGroup(bufferedReader, videos, diyPic); // 要分组
+            } else {
+                setM3ULive(bufferedReader, videos, diyPic);
+            }
+        }
+        // 倒序关闭流
+        bufferedReader.close();
+        is.close();
+        JSONObject result = new JSONObject()
+                .put("pagecount", 1)
+                .put("list", videos);
+        return result.toString();
     }
 
     /**
@@ -386,64 +376,52 @@ public class Live2Vod extends Spider {
     }
 
     @Override
-    public String detailContent(List<String> ids) {
-        try {
-            JSONObject videoInfoObj = new JSONObject(ids.get(0));
-            String vod_play_url = videoInfoObj.getString("vod_play_url");
-            String pic = videoInfoObj.getString("pic");
-            String vod_play_from = "选台";  // 线路 / 播放源标题
-            String vodPlayFrom = videoInfoObj.optString("vod_play_from");
-            if (!vodPlayFrom.equals("")) vod_play_from = vodPlayFrom;
+    public String detailContent(List<String> ids) throws Exception {
+        JSONObject videoInfoObj = new JSONObject(ids.get(0));
+        String vod_play_url = videoInfoObj.getString("vod_play_url");
+        String pic = videoInfoObj.getString("pic");
+        String vod_play_from = "选台";  // 线路 / 播放源标题
+        String vodPlayFrom = videoInfoObj.optString("vod_play_from");
+        if (!vodPlayFrom.equals("")) vod_play_from = vodPlayFrom;
 
-            String description = "";
-            String[] split = vod_play_url.split("\\$");
-            String name = "电视直播";
-            if (split.length == 2) {
-                name = split[0];
-                description = "播放地址：" + split[1];
-            }
-            JSONObject vodInfo = new JSONObject()
-                    .put("vod_id", ids.get(0))
-                    .put("vod_name", name) // 影片名称
-                    .put("vod_pic", pic) // 图片/影片封面
-                    .put("type_name", "电视直播")// 类型
-                    .put("vod_year", "") // 年份
-                    .put("vod_area", "") // 地区
-                    .put("vod_remarks", "") // 备注
-                    .put("vod_actor", "") // 主演
-                    .put("vod_director", "") // 导演
-                    .put("vod_content", description); // 简介
-
-            if (vod_play_url.length() > 0) {
-                vodInfo.put("vod_play_from", vod_play_from)
-                        .put("vod_play_url", vod_play_url);
-            }
-
-            JSONArray jsonArray = new JSONArray()
-                    .put(vodInfo);
-            JSONObject result = new JSONObject()
-                    .put("list", jsonArray);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+        String description = "";
+        String[] split = vod_play_url.split("\\$");
+        String name = "电视直播";
+        if (split.length == 2) {
+            name = split[0];
+            description = "播放地址：" + split[1];
         }
-        return "";
+        JSONObject vod = new JSONObject()
+                .put("vod_id", ids.get(0))
+                .put("vod_name", name) // 影片名称
+                .put("vod_pic", pic) // 图片/影片封面
+                .put("type_name", "电视直播")// 类型
+                .put("vod_year", "") // 年份
+                .put("vod_area", "") // 地区
+                .put("vod_remarks", "") // 备注
+                .put("vod_actor", "") // 主演
+                .put("vod_director", "") // 导演
+                .put("vod_content", description); // 简介
+
+        if (vod_play_url.length() > 0) {
+            vod.put("vod_play_from", vod_play_from);
+            vod.put("vod_play_url", vod_play_url);
+        }
+
+        JSONArray jsonArray = new JSONArray().put(vod);
+        JSONObject result = new JSONObject().put("list", jsonArray);
+        return result.toString();
     }
 
     @Override
-    public String playerContent(String flag, String id, List<String> vipFlags) {
-        try {
-            Map<String, String> header = new HashMap<>();
-            header.put("User-Agent", userAgent);
-            JSONObject result = new JSONObject()
-                    .put("parse", 0) // 直播链接都是可以直接播放的，所以直连就行
-                    .put("header", header.toString())
-                    .put("playUrl", "")
-                    .put("url", id);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+        Map<String, String> header = new HashMap<>();
+        header.put("User-Agent", userAgent);
+        JSONObject result = new JSONObject()
+                .put("parse", 0) // 直播链接都是可以直接播放的，所以直连就行
+                .put("header", header.toString())
+                .put("playUrl", "")
+                .put("url", id);
+        return result.toString();
     }
 }
