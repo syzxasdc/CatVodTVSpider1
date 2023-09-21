@@ -24,13 +24,9 @@ public class AppYsV2 extends Spider {
     private String[] extInfos = null;
 
     @Override
-    public void init(Context context, String extend) {
+    public void init(Context context, String extend) throws Exception {
         super.init(context, extend);
-        try {
-            extInfos = extend.split("###");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        extInfos = extend.split("###");
     }
 
     private Map<String, String> getHeader(String url) {
@@ -41,127 +37,215 @@ public class AppYsV2 extends Spider {
     }
 
     @Override
-    public String homeContent(boolean filter) {
-        try {
-            String url = getCateUrl(getApiUrl());
-            JSONArray jsonArray = null;
-            if (!url.isEmpty()) {
-                String json = desc(OkHttp.string(url, getHeader(url)), (byte) 0);
-                JSONObject obj = new JSONObject(json);
-                if (obj.has("list") && obj.get("list") instanceof JSONArray) {
-                    jsonArray = obj.getJSONArray("list");
-                } else if (obj.has("data") && obj.get("data") instanceof JSONObject && obj.getJSONObject("data").has("list") && obj.getJSONObject("data").get("list") instanceof JSONArray) {
-                    jsonArray = obj.getJSONObject("data").getJSONArray("list");
-                } else if (obj.has("data") && obj.get("data") instanceof JSONArray) {
-                    jsonArray = obj.getJSONArray("data");
-                }
-            } else { // 通过filter列表读分类
-                String filterStr = getFilterTypes(url, null);
-                String[] classes = filterStr.split("\n")[0].split("\\+");
-                jsonArray = new JSONArray();
-                for (int i = 1; i < classes.length; i++) {
-                    String[] kv = classes[i].trim().split("=");
-                    if (kv.length < 2)
-                        continue;
-                    JSONObject newCls = new JSONObject();
-                    newCls.put("type_name", kv[0].trim());
-                    newCls.put("type_id", kv[1].trim());
-                    jsonArray.put(newCls);
-                }
+    public String homeContent(boolean filter) throws Exception {
+        String url = getCateUrl(getApiUrl());
+        JSONArray jsonArray = null;
+        if (!url.isEmpty()) {
+            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 0);
+            JSONObject obj = new JSONObject(json);
+            if (obj.has("list") && obj.get("list") instanceof JSONArray) {
+                jsonArray = obj.getJSONArray("list");
+            } else if (obj.has("data") && obj.get("data") instanceof JSONObject && obj.getJSONObject("data").has("list") && obj.getJSONObject("data").get("list") instanceof JSONArray) {
+                jsonArray = obj.getJSONObject("data").getJSONArray("list");
+            } else if (obj.has("data") && obj.get("data") instanceof JSONArray) {
+                jsonArray = obj.getJSONArray("data");
             }
-            JSONObject result = new JSONObject();
-            JSONArray classes = new JSONArray();
-            if (jsonArray != null) {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jObj = jsonArray.getJSONObject(i);
-                    String typeName = jObj.optString("type_name");
-                    if (isBan(typeName))
-                        continue;
-                    String typeId = jObj.optString("type_id");
-                    JSONObject newCls = new JSONObject();
-                    newCls.put("type_id", typeId);
-                    newCls.put("type_name", typeName);
-                    JSONObject typeExtend = jObj.optJSONObject("type_extend");
-                    if (filter) {
-                        String filterStr = getFilterTypes(url, typeExtend);
-                        String[] filters = filterStr.split("\n");
-                        JSONArray filterArr = new JSONArray();
-                        for (int k = url.isEmpty() ? 1 : 0; k < filters.length; k++) {
-                            String l = filters[k].trim();
-                            if (l.isEmpty())
-                                continue;
-                            String[] oneLine = l.split("\\+");
-                            String type = oneLine[0].trim();
-                            String typeN = type;
-                            if (type.contains("筛选")) {
-                                type = type.replace("筛选", "");
-                                if (type.equals("class"))
-                                    typeN = "类型";
-                                else if (type.equals("area"))
-                                    typeN = "地区";
-                                else if (type.equals("lang"))
-                                    typeN = "语言";
-                                else if (type.equals("year"))
-                                    typeN = "年份";
-                            }
-                            JSONObject jOne = new JSONObject();
-                            jOne.put("key", type);
-                            jOne.put("name", typeN);
-                            JSONArray valueArr = new JSONArray();
-                            for (int j = 1; j < oneLine.length; j++) {
-                                JSONObject kvo = new JSONObject();
-                                String kv = oneLine[j].trim();
-                                int sp = kv.indexOf("=");
-                                if (sp == -1) {
-                                    if (isBan(kv))
-                                        continue;
-                                    kvo.put("n", kv);
-                                    kvo.put("v", kv);
-                                } else {
-                                    String n = kv.substring(0, sp);
-                                    if (isBan(n))
-                                        continue;
-                                    kvo.put("n", n.trim());
-                                    kvo.put("v", kv.substring(sp + 1).trim());
-                                }
-                                valueArr.put(kvo);
-                            }
-                            jOne.put("value", valueArr);
-                            filterArr.put(jOne);
-                        }
-                        if (!result.has("filters")) {
-                            result.put("filters", new JSONObject());
-                        }
-                        result.getJSONObject("filters").put(typeId, filterArr);
-                    }
-                    classes.put(newCls);
-                }
+        } else { // 通过filter列表读分类
+            String filterStr = getFilterTypes(url, null);
+            String[] classes = filterStr.split("\n")[0].split("\\+");
+            jsonArray = new JSONArray();
+            for (int i = 1; i < classes.length; i++) {
+                String[] kv = classes[i].trim().split("=");
+                if (kv.length < 2)
+                    continue;
+                JSONObject newCls = new JSONObject();
+                newCls.put("type_name", kv[0].trim());
+                newCls.put("type_id", kv[1].trim());
+                jsonArray.put(newCls);
             }
-            result.put("class", classes);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+        JSONObject result = new JSONObject();
+        JSONArray classes = new JSONArray();
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jObj = jsonArray.getJSONObject(i);
+                String typeName = jObj.optString("type_name");
+                if (isBan(typeName))
+                    continue;
+                String typeId = jObj.optString("type_id");
+                JSONObject newCls = new JSONObject();
+                newCls.put("type_id", typeId);
+                newCls.put("type_name", typeName);
+                JSONObject typeExtend = jObj.optJSONObject("type_extend");
+                if (filter) {
+                    String filterStr = getFilterTypes(url, typeExtend);
+                    String[] filters = filterStr.split("\n");
+                    JSONArray filterArr = new JSONArray();
+                    for (int k = url.isEmpty() ? 1 : 0; k < filters.length; k++) {
+                        String l = filters[k].trim();
+                        if (l.isEmpty())
+                            continue;
+                        String[] oneLine = l.split("\\+");
+                        String type = oneLine[0].trim();
+                        String typeN = type;
+                        if (type.contains("筛选")) {
+                            type = type.replace("筛选", "");
+                            if (type.equals("class"))
+                                typeN = "类型";
+                            else if (type.equals("area"))
+                                typeN = "地区";
+                            else if (type.equals("lang"))
+                                typeN = "语言";
+                            else if (type.equals("year"))
+                                typeN = "年份";
+                        }
+                        JSONObject jOne = new JSONObject();
+                        jOne.put("key", type);
+                        jOne.put("name", typeN);
+                        JSONArray valueArr = new JSONArray();
+                        for (int j = 1; j < oneLine.length; j++) {
+                            JSONObject kvo = new JSONObject();
+                            String kv = oneLine[j].trim();
+                            int sp = kv.indexOf("=");
+                            if (sp == -1) {
+                                if (isBan(kv))
+                                    continue;
+                                kvo.put("n", kv);
+                                kvo.put("v", kv);
+                            } else {
+                                String n = kv.substring(0, sp);
+                                if (isBan(n))
+                                    continue;
+                                kvo.put("n", n.trim());
+                                kvo.put("v", kv.substring(sp + 1).trim());
+                            }
+                            valueArr.put(kvo);
+                        }
+                        jOne.put("value", valueArr);
+                        filterArr.put(jOne);
+                    }
+                    if (!result.has("filters")) {
+                        result.put("filters", new JSONObject());
+                    }
+                    result.getJSONObject("filters").put(typeId, filterArr);
+                }
+                classes.put(newCls);
+            }
+        }
+        result.put("class", classes);
+        return result.toString();
     }
 
     @Override
-    public String homeVideoContent() {
-        try {
-            String apiUrl = getApiUrl();
-            String url = getRecommendUrl(apiUrl);
-            boolean isTV = false;
-            if (url.isEmpty()) {
-                url = getCateFilterUrlPrefix(apiUrl) + "movie&page=1&area=&type=&start=";
-                isTV = true;
+    public String homeVideoContent() throws Exception {
+        String apiUrl = getApiUrl();
+        String url = getRecommendUrl(apiUrl);
+        boolean isTV = false;
+        if (url.isEmpty()) {
+            url = getCateFilterUrlPrefix(apiUrl) + "movie&page=1&area=&type=&start=";
+            isTV = true;
+        }
+        String json = desc(OkHttp.string(url, getHeader(url)), (byte) 1);
+        JSONObject obj = new JSONObject(json);
+        JSONArray videos = new JSONArray();
+        if (isTV) {
+            JSONArray jsonArray = obj.getJSONArray("data");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject vObj = jsonArray.getJSONObject(i);
+                JSONObject v = new JSONObject();
+                v.put("vod_id", vObj.optString("nextlink"));
+                v.put("vod_name", vObj.optString("title"));
+                v.put("vod_pic", vObj.optString("pic"));
+                v.put("vod_remarks", vObj.optString("state"));
+                videos.put(v);
             }
-            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 1);
-            JSONObject obj = new JSONObject(json);
-            JSONArray videos = new JSONArray();
-            if (isTV) {
-                JSONArray jsonArray = obj.getJSONArray("data");
+        } else {
+            ArrayList<JSONArray> arrays = new ArrayList<>();
+            findJsonArray(obj, "vlist", arrays);
+            if (arrays.isEmpty()) {
+                findJsonArray(obj, "vod_list", arrays);
+            }
+            List<String> ids = new ArrayList<>();
+            for (JSONArray jsonArray : arrays) {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject vObj = jsonArray.getJSONObject(i);
+                    String vid = vObj.optString("vod_id");
+                    if (ids.contains(vid))
+                        continue;
+                    ids.add(vid);
+                    JSONObject v = new JSONObject();
+                    v.put("vod_id", vid);
+                    v.put("vod_name", vObj.optString("vod_name"));
+                    v.put("vod_pic", vObj.optString("vod_pic"));
+                    v.put("vod_remarks", vObj.optString("vod_remarks"));
+                    videos.put(v);
+                }
+            }
+        }
+        JSONObject result = new JSONObject();
+        result.put("list", videos);
+        return result.toString();
+    }
+
+    @Override
+    public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) throws Exception {
+        String apiUrl = getApiUrl();
+        String url = getCateFilterUrlPrefix(apiUrl) + tid + getCateFilterUrlSuffix(apiUrl);
+        url = url.replace("#PN#", pg);
+        url = url.replace("筛选class", (extend != null && extend.containsKey("class")) ? extend.get("class") : "");
+        url = url.replace("筛选area", (extend != null && extend.containsKey("area")) ? extend.get("area") : "");
+        url = url.replace("筛选lang", (extend != null && extend.containsKey("lang")) ? extend.get("lang") : "");
+        url = url.replace("筛选year", (extend != null && extend.containsKey("year")) ? extend.get("year") : "");
+        url = url.replace("排序", (extend != null && extend.containsKey("排序")) ? extend.get("排序") : "");
+        String json = desc(OkHttp.string(url, getHeader(url)), (byte) 2);
+        JSONObject obj = new JSONObject(json);
+        int totalPg = Integer.MAX_VALUE;
+        try {
+            if (obj.has("totalpage")
+                    && obj.get("totalpage") instanceof Integer) {
+                totalPg = obj.getInt("totalpage");
+            } else if (obj.has("pagecount")
+                    && obj.get("pagecount") instanceof Integer) {
+                totalPg = obj.getInt("pagecount");
+            } else if (obj.has("data")
+                    && obj.get("data") instanceof JSONObject
+                    && (obj.getJSONObject("data").has("total")
+                    && obj.getJSONObject("data").get("total") instanceof Integer
+                    && obj.getJSONObject("data").has("limit")
+                    && obj.getJSONObject("data").get("limit") instanceof Integer)) {
+                int limit = obj.getJSONObject("data").getInt("limit");
+                int total = obj.getJSONObject("data").getInt("total");
+                totalPg = total % limit == 0 ? (total / limit) : (total / limit + 1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        JSONArray jsonArray = null;
+        JSONArray videos = new JSONArray();
+        if (obj.has("list")
+                && obj.get("list") instanceof JSONArray) {
+            jsonArray = obj.getJSONArray("list");
+        } else if (obj.has("data")
+                && obj.get("data") instanceof JSONObject
+                && obj.getJSONObject("data").has("list")
+                && obj.getJSONObject("data").get("list") instanceof JSONArray) {
+            jsonArray = obj.getJSONObject("data").getJSONArray("list");
+        } else if (obj.has("data")
+                && obj.get("data") instanceof JSONArray) {
+            jsonArray = obj.getJSONArray("data");
+        }
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject vObj = jsonArray.getJSONObject(i);
+                if (vObj.has("vod_id")) {
+                    JSONObject v = new JSONObject();
+                    v.put("vod_id", vObj.optString("vod_id"));
+                    v.put("vod_name", vObj.optString("vod_name"));
+                    v.put("vod_pic", vObj.optString("vod_pic"));
+                    v.put("vod_remarks", vObj.optString("vod_remarks"));
+                    videos.put(v);
+                } else {
                     JSONObject v = new JSONObject();
                     v.put("vod_id", vObj.optString("nextlink"));
                     v.put("vod_name", vObj.optString("title"));
@@ -169,218 +253,100 @@ public class AppYsV2 extends Spider {
                     v.put("vod_remarks", vObj.optString("state"));
                     videos.put(v);
                 }
-            } else {
-                ArrayList<JSONArray> arrays = new ArrayList<>();
-                findJsonArray(obj, "vlist", arrays);
-                if (arrays.isEmpty()) {
-                    findJsonArray(obj, "vod_list", arrays);
-                }
-                List<String> ids = new ArrayList<>();
-                for (JSONArray jsonArray : arrays) {
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject vObj = jsonArray.getJSONObject(i);
-                        String vid = vObj.optString("vod_id");
-                        if (ids.contains(vid))
-                            continue;
-                        ids.add(vid);
-                        JSONObject v = new JSONObject();
-                        v.put("vod_id", vid);
-                        v.put("vod_name", vObj.optString("vod_name"));
-                        v.put("vod_pic", vObj.optString("vod_pic"));
-                        v.put("vod_remarks", vObj.optString("vod_remarks"));
-                        videos.put(v);
-                    }
-                }
             }
-            JSONObject result = new JSONObject();
-            result.put("list", videos);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+        JSONObject result = new JSONObject();
+        result.put("page", pg);
+        result.put("pagecount", totalPg);
+        result.put("limit", 90);
+        result.put("total", Integer.MAX_VALUE);
+        result.put("list", videos);
+        return result.toString();
     }
 
     @Override
-    public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
-        try {
-            String apiUrl = getApiUrl();
-            String url = getCateFilterUrlPrefix(apiUrl) + tid + getCateFilterUrlSuffix(apiUrl);
-            url = url.replace("#PN#", pg);
-            url = url.replace("筛选class", (extend != null && extend.containsKey("class")) ? extend.get("class") : "");
-            url = url.replace("筛选area", (extend != null && extend.containsKey("area")) ? extend.get("area") : "");
-            url = url.replace("筛选lang", (extend != null && extend.containsKey("lang")) ? extend.get("lang") : "");
-            url = url.replace("筛选year", (extend != null && extend.containsKey("year")) ? extend.get("year") : "");
-            url = url.replace("排序", (extend != null && extend.containsKey("排序")) ? extend.get("排序") : "");
-            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 2);
-            JSONObject obj = new JSONObject(json);
-            int totalPg = Integer.MAX_VALUE;
-            try {
-                if (obj.has("totalpage")
-                        && obj.get("totalpage") instanceof Integer) {
-                    totalPg = obj.getInt("totalpage");
-                } else if (obj.has("pagecount")
-                        && obj.get("pagecount") instanceof Integer) {
-                    totalPg = obj.getInt("pagecount");
-                } else if (obj.has("data")
-                        && obj.get("data") instanceof JSONObject
-                        && (obj.getJSONObject("data").has("total")
-                        && obj.getJSONObject("data").get("total") instanceof Integer
-                        && obj.getJSONObject("data").has("limit")
-                        && obj.getJSONObject("data").get("limit") instanceof Integer)) {
-                    int limit = obj.getJSONObject("data").getInt("limit");
-                    int total = obj.getJSONObject("data").getInt("total");
-                    totalPg = total % limit == 0 ? (total / limit) : (total / limit + 1);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            JSONArray jsonArray = null;
-            JSONArray videos = new JSONArray();
-            if (obj.has("list")
-                    && obj.get("list") instanceof JSONArray) {
-                jsonArray = obj.getJSONArray("list");
-            } else if (obj.has("data")
-                    && obj.get("data") instanceof JSONObject
-                    && obj.getJSONObject("data").has("list")
-                    && obj.getJSONObject("data").get("list") instanceof JSONArray) {
-                jsonArray = obj.getJSONObject("data").getJSONArray("list");
-            } else if (obj.has("data")
-                    && obj.get("data") instanceof JSONArray) {
-                jsonArray = obj.getJSONArray("data");
-            }
-            if (jsonArray != null) {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject vObj = jsonArray.getJSONObject(i);
-                    if (vObj.has("vod_id")) {
-                        JSONObject v = new JSONObject();
-                        v.put("vod_id", vObj.optString("vod_id"));
-                        v.put("vod_name", vObj.optString("vod_name"));
-                        v.put("vod_pic", vObj.optString("vod_pic"));
-                        v.put("vod_remarks", vObj.optString("vod_remarks"));
-                        videos.put(v);
-                    } else {
-                        JSONObject v = new JSONObject();
-                        v.put("vod_id", vObj.optString("nextlink"));
-                        v.put("vod_name", vObj.optString("title"));
-                        v.put("vod_pic", vObj.optString("pic"));
-                        v.put("vod_remarks", vObj.optString("state"));
-                        videos.put(v);
-                    }
-                }
-            }
-            JSONObject result = new JSONObject();
-            result.put("page", pg);
-            result.put("pagecount", totalPg);
-            result.put("limit", 90);
-            result.put("total", Integer.MAX_VALUE);
-            result.put("list", videos);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
+    public String detailContent(List<String> ids) throws Exception {
+        String apiUrl = getApiUrl();
+        String url = getPlayUrlPrefix(apiUrl) + ids.get(0);
+        String json = desc(OkHttp.string(url, getHeader(url)), (byte) 3);
+        JSONObject obj = new JSONObject(json);
+        JSONObject result = new JSONObject();
+        JSONObject vod = new JSONObject();
+        genPlayList(apiUrl, obj, json, vod, ids.get(0));
+        JSONArray list = new JSONArray();
+        list.put(vod);
+        result.put("list", list);
+        return result.toString();
     }
 
     @Override
-    public String detailContent(List<String> ids) {
-        try {
-            String apiUrl = getApiUrl();
-            String url = getPlayUrlPrefix(apiUrl) + ids.get(0);
-            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 3);
-            JSONObject obj = new JSONObject(json);
-            JSONObject result = new JSONObject();
-            JSONObject vod = new JSONObject();
-            genPlayList(apiUrl, obj, json, vod, ids.get(0));
-            JSONArray list = new JSONArray();
-            list.put(vod);
-            result.put("list", list);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public String searchContent(String key, boolean quick) throws Exception {
+        String apiUrl = getApiUrl();
+        String url = getSearchUrl(apiUrl, URLEncoder.encode(key));
+        String json = desc(OkHttp.string(url, getHeader(url)), (byte) 5);
+        JSONObject obj = new JSONObject(json);
+        JSONArray jsonArray = null;
+        JSONArray videos = new JSONArray();
+        if (obj.has("list")
+                && obj.get("list") instanceof JSONArray) {
+            jsonArray = obj.getJSONArray("list");
+        } else if (obj.has("data")
+                && obj.get("data") instanceof JSONObject
+                && obj.getJSONObject("data").has("list")
+                && obj.getJSONObject("data").get("list") instanceof JSONArray) {
+            jsonArray = obj.getJSONObject("data").getJSONArray("list");
+        } else if (obj.has("data")
+                && obj.get("data") instanceof JSONArray) {
+            jsonArray = obj.getJSONArray("data");
         }
-        return "";
-    }
-
-    @Override
-    public String searchContent(String key, boolean quick) {
-        try {
-            String apiUrl = getApiUrl();
-            String url = getSearchUrl(apiUrl, URLEncoder.encode(key));
-            String json = desc(OkHttp.string(url, getHeader(url)), (byte) 5);
-            JSONObject obj = new JSONObject(json);
-            JSONArray jsonArray = null;
-            JSONArray videos = new JSONArray();
-            if (obj.has("list")
-                    && obj.get("list") instanceof JSONArray) {
-                jsonArray = obj.getJSONArray("list");
-            } else if (obj.has("data")
-                    && obj.get("data") instanceof JSONObject
-                    && obj.getJSONObject("data").has("list")
-                    && obj.getJSONObject("data").get("list") instanceof JSONArray) {
-                jsonArray = obj.getJSONObject("data").getJSONArray("list");
-            } else if (obj.has("data")
-                    && obj.get("data") instanceof JSONArray) {
-                jsonArray = obj.getJSONArray("data");
-            }
-            if (jsonArray != null) {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject vObj = jsonArray.getJSONObject(i);
-                    if (vObj.has("vod_id")) {
-                        JSONObject v = new JSONObject();
-                        v.put("vod_id", vObj.optString("vod_id"));
-                        v.put("vod_name", vObj.optString("vod_name"));
-                        v.put("vod_pic", vObj.optString("vod_pic"));
-                        v.put("vod_remarks", vObj.optString("vod_remarks"));
-                        videos.put(v);
-                    } else {
-                        JSONObject v = new JSONObject();
-                        v.put("vod_id", vObj.optString("nextlink"));
-                        v.put("vod_name", vObj.optString("title"));
-                        v.put("vod_pic", vObj.optString("pic"));
-                        v.put("vod_remarks", vObj.optString("state"));
-                        videos.put(v);
-                    }
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject vObj = jsonArray.getJSONObject(i);
+                if (vObj.has("vod_id")) {
+                    JSONObject v = new JSONObject();
+                    v.put("vod_id", vObj.optString("vod_id"));
+                    v.put("vod_name", vObj.optString("vod_name"));
+                    v.put("vod_pic", vObj.optString("vod_pic"));
+                    v.put("vod_remarks", vObj.optString("vod_remarks"));
+                    videos.put(v);
+                } else {
+                    JSONObject v = new JSONObject();
+                    v.put("vod_id", vObj.optString("nextlink"));
+                    v.put("vod_name", vObj.optString("title"));
+                    v.put("vod_pic", vObj.optString("pic"));
+                    v.put("vod_remarks", vObj.optString("state"));
+                    videos.put(v);
                 }
             }
-            JSONObject result = new JSONObject();
-            result.put("list", videos);
-            return result.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+        JSONObject result = new JSONObject();
+        result.put("list", videos);
+        return result.toString();
     }
 
     @Override
-    public String playerContent(String flag, String id, List<String> vipFlags) {
-        try {
-            ArrayList<String> parseUrls = parseUrlMap.get(flag);
-            if (parseUrls == null)
-                parseUrls = new ArrayList<>();
-            if (!parseUrls.isEmpty()) {
-                JSONObject result = getFinalVideo(flag, parseUrls, id);
-                if (result != null)
-                    return result.toString();
-            }
-            if (Misc.isVideoFormat(id)) {
-                JSONObject result = new JSONObject();
-                result.put("parse", 0);
-                result.put("playUrl", "");
-                result.put("url", id);
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+        ArrayList<String> parseUrls = parseUrlMap.get(flag);
+        if (parseUrls == null)
+            parseUrls = new ArrayList<>();
+        if (!parseUrls.isEmpty()) {
+            JSONObject result = getFinalVideo(flag, parseUrls, id);
+            if (result != null)
                 return result.toString();
-            } else {
-                JSONObject result = new JSONObject();
-                result.put("parse", 1);
-                result.put("jx", "1");
-                result.put("url", id);
-                return result.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return "";
+        if (Misc.isVideoFormat(id)) {
+            JSONObject result = new JSONObject();
+            result.put("parse", 0);
+            result.put("playUrl", "");
+            result.put("url", id);
+            return result.toString();
+        } else {
+            JSONObject result = new JSONObject();
+            result.put("parse", 1);
+            result.put("jx", "1");
+            result.put("url", id);
+            return result.toString();
+        }
     }
 
     private void findJsonArray(JSONObject obj, String match, ArrayList<JSONArray> result) {
@@ -825,12 +791,12 @@ public class AppYsV2 extends Spider {
     }
 
     @Override
-    public boolean manualVideoCheck() {
+    public boolean manualVideoCheck() throws Exception {
         return true;
     }
 
     @Override
-    public boolean isVideoFormat(String url) {
+    public boolean isVideoFormat(String url) throws Exception {
         return Misc.isVideoFormat(url);
     }
 
